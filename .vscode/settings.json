@@ -1,0 +1,7 @@
+{
+    "makefile.makePath": "make",
+    "makefile.loggingLevel": "Debug",
+    "terminal.integrated.defaultProfile.windows": "MinGW64",
+    "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild",
+    "C_Cpp.default.compileCommands": "c:\\code\\1work\\cdhit\\builddir/compile_commands.json",
+}

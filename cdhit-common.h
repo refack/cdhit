@@ -25,6 +25,13 @@
 //                    Email: l2fu@ucsd.edu, fu@daovm.net
 // =============================================================================
 
+#ifdef _WIN32
+typedef int pid_t;
+#include <_mingw.h>
+#include <sys/types.h>
+typedef _off_t off_t;
+#endif
+
 #include<iostream>
 #include<fstream>
 #include<iomanip>
@@ -36,6 +43,8 @@
 #include<time.h>
 
 #ifdef WITH_ZLIB
+// #define Z_LARGE64 1
+// #define Z_WANT64 1
 #include<zlib.h>
 #endif
 

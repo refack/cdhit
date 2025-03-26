@@ -1,6 +1,10 @@
 
 CD-HIT ChangeLog
 
+CD-HIT-V25.0.0 (2025-03-26)
+Add: support meson
+Add: support MinGW64
+
 CD-HIT-V4.8.1 (2019-03-01):
 Add: support  .gz input files
 

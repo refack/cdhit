@@ -2,14 +2,16 @@ CC = g++ -Wall -ggdb
 CC = g++ -pg
 CC = g++
 
+CCFLAGS = -DNO_OLDNAMES
+
 # default with OpenMP
 # with OpenMP
 # in command line: 
 # make openmp=yes
 ifeq ($(openmp),no)
-  CCFLAGS = -DNO_OPENMP
+  CCFLAGS += -DNO_OPENMP
 else
-  CCFLAGS = -fopenmp
+  CCFLAGS += -fopenmp
 endif
 
 #LDFLAGS = -static -lz -o
@@ -34,7 +36,7 @@ endif
 ifeq ($(debug),yes)
 CCFLAGS += -ggdb
 else
-CCFLAGS += -O2
+CCFLAGS += -O3
 endif
 
 ifdef MAX_SEQ

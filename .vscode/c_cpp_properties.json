@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "name": "MinGW64",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "WIN32",
+                "UNICODE",
+                "_UNICODE",
+                "WITH_ZLIB",
+                "NO_OLDNAMES"
+            ],
+            "windowsSdkVersion": "10.0.26100.0",
+            "compilerPath": "C:\\bin\\tools\\scoop\\apps\\msys2\\current\\mingw64\\bin\\g++.exe",
+            "cStandard": "c23",
+            "cppStandard": "c++23",
+            "intelliSenseMode": "windows-gcc-x64",
+            "configurationProvider": "ms-vscode.makefile-tools"
+        }
+    ],
+    "version": 4
+}

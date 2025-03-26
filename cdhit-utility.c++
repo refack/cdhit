@@ -1,7 +1,7 @@
 
+#include"cdhit-common.h"
 #include<stdlib.h>
 #include<iostream>
-#include"cdhit-common.h"
 
 using namespace std;
 

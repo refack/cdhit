@@ -1,0 +1,2 @@
+option('openmp', type: 'boolean', value: true, description: 'Enable OpenMP support')
+option('zlib', type: 'boolean', value: true, description: 'Enable zlib support')

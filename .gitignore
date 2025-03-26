@@ -1,0 +1,6 @@
+/build
+/*.exe
+/*.o
+/.makeartifacts
+/.logs
+/.vs
