@@ -32,4 +32,4 @@ foreach prog, src : sources
   executables += exe
 endforeach
 
-
+subdir('scripts')
