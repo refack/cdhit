@@ -52,7 +52,7 @@ typedef _off_t off_t;
 #include<vector>
 #include<map>
 
-#define CDHIT_VERSION  "4.8.1"
+#define CDHIT_VERSION  "25.0.0"
 
 #ifndef MAX_SEQ
 #define MAX_SEQ 655360
@@ -271,19 +271,19 @@ struct Options
 	bool    cluster_best;  // -g: 0, the first; 1, the best
 	bool    global_identity; // -G:
 	bool    store_disk; // -B:
-	int     band_width; // -b: 20
+	unsigned int     band_width; // -b: 20
 	double  cluster_thd; // -c
 	double  distance_thd; // -D
 	double  diff_cutoff; // -s: 0.0
 	double  diff_cutoff2; // -s2: 1.0
 	int     diff_cutoff_aa; // -S: 999999
-	int     diff_cutoff_aa2; // -S2: 0
+	unsigned int     diff_cutoff_aa2; // -S2: 0
 	int     tolerance; // -t: 2
 	double  long_coverage; // -aL:
-	int     long_control; // -AL:
+	unsigned int     long_control; // -AL:
 	double  short_coverage; // -aS:
-	int     short_control; // -AS:
-	int     min_control; // -A:
+	unsigned int     short_control; // -AS:
+	unsigned int      min_control; // -A:
 	double  long_unmatch_per; // -uL
 	double  short_unmatch_per; // -uS
 	int     unmatch_len; // -U
@@ -458,8 +458,8 @@ struct WorkingParam
 
 	int len_eff;
 	int aln_cover_flag;
-	int min_aln_lenS;
-	int min_aln_lenL;
+	unsigned int min_aln_lenS;
+	unsigned int min_aln_lenL;
 	int required_aa1;
 	int required_aas; /* or aa2 */
 	int required_aan;
@@ -625,7 +625,7 @@ int diag_test_aapn_est(int NAA1, char iseq2[], int len1, int len2,
 		WorkingBuffer & buffer, int &best_sum,
 		int band_width, int &band_left, int &band_center, int &band_right, int required_aa1);
 int local_band_align( char query[], char ref[], int qlen, int rlen, ScoreMatrix &mat, 
-		int &best_score, int &iden_no, int &alnln, float &dist, int *alninfo,
+		int &best_score, int &iden_no, int &alnln, float &dist, unsigned int *alninfo,
 		int band_left, int band_center, int band_right, WorkingBuffer & buffer);
 
 void strrev(char *p);

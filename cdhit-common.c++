@@ -30,6 +30,7 @@
 #include<stdint.h>
 #include<assert.h>
 #include<limits.h>
+#include<assert.h>
 
 #ifndef NO_OPENMP
 
@@ -102,6 +103,8 @@ int BLOSUM62_na[] = {
 //A  C  G  T  U  N  X
 //0  1  2  3  3  4  5
 };
+
+constexpr auto MEGA_MiBi = 1'000'000;
 
 void setaa_to_na();
 
@@ -531,7 +534,7 @@ int diag_test_aapn(int NAA1, char iseq2[], int len1, int len2, WorkingBuffer & b
 	for (pp=&diag_score2[0], i=nall; i; i--, pp++) *pp=0;
 
 	int c22, cpx;
-	INTs *bip;
+	// INTs *bip;
 	int len11 = len1-1;
 	int len22 = len2-1;
 	i1 = len11;
@@ -554,7 +557,7 @@ int diag_test_aapn(int NAA1, char iseq2[], int len1, int len2, WorkingBuffer & b
 	int band_m = ( band_b+band_width-1 < band_e ) ? band_b+band_width-1 : band_e;
 	int best_score=0;
 	int best_score2=0;
-	int max_diag = 0;
+	// int max_diag(0);
 	int max_diag2 = 0;
 	int imax_diag = 0;
 	for (i=band_b; i<=band_m; i++){
@@ -562,7 +565,7 @@ int diag_test_aapn(int NAA1, char iseq2[], int len1, int len2, WorkingBuffer & b
 		best_score2 += diag_score2[i];
 		if( diag_score2[i] > max_diag2 ){
 			max_diag2 = diag_score2[i];
-			max_diag = diag_score[i];
+			// max_diag = diag_score[i];
 			imax_diag = i;
 		}
 	}
@@ -582,7 +585,7 @@ int diag_test_aapn(int NAA1, char iseq2[], int len1, int len2, WorkingBuffer & b
 			best_score2 = score2;
 			if( diag_score2[j] > max_diag2 ){
 				max_diag2 = diag_score2[j];
-				max_diag = diag_score[j];
+				// max_diag = diag_score[j];
 				imax_diag = j;
 			}
 		}
@@ -678,7 +681,7 @@ int diag_test_aapn_est(int NAA1, char iseq2[], int len1, int len2, WorkingBuffer
 	int band_m = ( band_b+band_width-1 < band_e ) ? band_b+band_width-1 : band_e;
 	int best_score=0;
 	int best_score2=0;
-	int max_diag = 0;
+	// int max_diag = 0;
 	int max_diag2 = 0;
 	int imax_diag = 0;
 	for (i=band_b; i<=band_m; i++){
@@ -686,7 +689,7 @@ int diag_test_aapn_est(int NAA1, char iseq2[], int len1, int len2, WorkingBuffer
 		best_score2 += diag_score2[i];
 		if( diag_score2[i] > max_diag2 ){
 			max_diag2 = diag_score2[i];
-			max_diag = diag_score[i];
+			// max_diag = diag_score[i];
 			imax_diag = i;
 		}
 	}
@@ -707,7 +710,7 @@ int diag_test_aapn_est(int NAA1, char iseq2[], int len1, int len2, WorkingBuffer
 			best_score2 = score2;
 			if( diag_score2[j] > max_diag2 ){
 				max_diag2 = diag_score2[j];
-				max_diag = diag_score[j];
+				// max_diag = diag_score[j];
 				imax_diag = j;
 			}
 		}
@@ -787,12 +790,13 @@ mat is matrix, return ALN_PAIR class
 */
 
 int local_band_align( char iseq1[], char iseq2[], int len1, int len2, ScoreMatrix &mat, 
-		int &best_score, int &iden_no, int &alnln, float &dist, int *alninfo,
+		int &best_score, int &iden_no, int &alnln, float &dist, unsigned int *alninfo,
 		int band_left, int band_center, int band_right, WorkingBuffer & buffer)
 {
 	int i, j, k, j1;
-	int jj, kk;
-	int iden_no1;
+	// int jj;
+	// int kk;
+	// int iden_no1;
 	int64_t best_score1;
 	iden_no = 0;
 
@@ -882,8 +886,9 @@ int local_band_align( char iseq1[], char iseq2[], int len1, int len2, ScoreMatri
 			int ci = iseq1[i-1];
 			int cj = iseq2[j-1];
 			int sij = mat.matrix[ci][cj];
-			//int iden_ij = (ci == cj);
-			int s1, k0, back;
+			// int iden_ij = (ci == cj);
+			// int s1; int k0;
+			int back;
 
 			/* extra score according to the distance to the best diagonal */
 			int extra = extra_score[ abs(j1 - max_diag) & 3 ]; // max distance 3
@@ -933,13 +938,14 @@ int local_band_align( char iseq1[], char iseq2[], int len1, int len2, ScoreMatri
 	best_score = score_mat[i][j1];
 	best_score1 = score_mat[i][j1];
 
-#if 1
-	const char *letters = "acgtnx";
-	const char *letters2 = "ACGTNX";
-#else
-	const char *letters = "arndcqeghilkmfpstwyvbzx";
-	const char *letters2 = "ARNDCQEGHILKMFPSTWYVBZX";
-#endif
+// #if 1
+// 	const char *letters = "acgtnx";
+// 	const char *letters2 = "ACGTNX";
+// #else
+// 	const char *letters = "arndcqeghilkmfpstwyvbzx";
+// 	const char *letters2 = "ARNDCQEGHILKMFPSTWYVBZX";
+// #endif
+
 	int back = back_mat[i][j1];
 	int last = back;
 	int count = 0, count2 = 0, count3 = 0;
@@ -1215,7 +1221,6 @@ void ScoreMatrix::init()
 
 void ScoreMatrix::set_gap(int gap1, int ext_gap1)
 {
-	int i;
 	gap = MAX_SEQ * gap1;
 	ext_gap = MAX_SEQ * ext_gap1;
 }
@@ -1432,9 +1437,9 @@ int WordTable::CountWords(int aan_no, Vector<int> & word_encodes, Vector<INTs> &
     NVector<IndexCount> &lookCounts, NVector<uint32_t> & indexMapping, 
 	bool est, int min)
 {
-	int S = frag_count ? frag_count : sequences.size();
-	int  j, k, j0, j1, k1, m;
-	int ix1, ix2, ix3, ix4;
+	// int S = frag_count ? frag_count : sequences.size();
+	int  j, k, j0, j1, k1;
+	// int ix1, ix2, ix3, ix4;
 	IndexCount tmp;
 
 	IndexCount *ic = lookCounts.items;
@@ -1484,7 +1489,6 @@ Sequence::Sequence()
 }
 Sequence::Sequence( const Sequence & other )
 {
-	int i;
 	//printf( "new: %p  %p\n", this, & other );
 	memcpy( this, & other, sizeof( Sequence ) );
 	distance = 2.0;
@@ -1513,8 +1517,7 @@ Sequence::Sequence( const Sequence & other )
 // NMLYYYYYYXXXXXXABC
 Sequence::Sequence( const Sequence & other, const Sequence & other2, int mode )
 {
-	int i;
-        if (mode != 1) bomb_error("unknown mode");
+	if (mode != 1) bomb_error("unknown mode");
 
 	//printf( "new: %p  %p\n", this, & other );
 	memcpy( this, & other, sizeof( Sequence ) );
@@ -1570,13 +1573,13 @@ void Sequence::operator=( const char *s )
 }
 void Sequence::operator+=( const char *s )
 {
-	int i, m = size, n = strlen( s );
+	int m = size; int n = strlen( s );
 	Reserve( m + n );
 	memcpy( data+m, s, n );
 }
 void Sequence::Resize( int n )
 {
-	int i, m = size < n ? size : n;
+	int m = size < n ? size : n;
 	size = n;
 	if( size != bufsize ){
 		char *old = data;
@@ -1592,7 +1595,7 @@ void Sequence::Resize( int n )
 }
 void Sequence::Reserve( int n )
 {
-	int i, m = size < n ? size : n;
+	int m = size < n ? size : n;
 	size = n;
 	if( size > bufsize ){
 		char *old = data;
@@ -1619,11 +1622,7 @@ void Sequence::ConvertBases()
 
 void Sequence::Swap( Sequence & other )
 {
-	Sequence tmp;
-	memcpy( & tmp, this, sizeof( Sequence ) );
-	memcpy( this, & other, sizeof( Sequence ) );
-	memcpy( & other, & tmp, sizeof( Sequence ) );
-	memset( & tmp, 0, sizeof( Sequence ) );
+	std::swap(*this, other);
 }
 int Sequence::Format()
 {
@@ -2227,7 +2226,8 @@ void SequenceDB::Sort( int first, int last )
 #endif
 void SequenceDB::SortDivide( Options & options, bool sort )
 {
-	int i, j, k, len;
+	int i;
+	unsigned int len;
 	int N = sequences.size();
 	total_letter=0;
 	total_desc=0;
@@ -2787,15 +2787,15 @@ void WorkingParam::ComputeRequiredBases( int NAA, int ss, const Options & option
 	// so, minimum word count = 1/d - m.
 	// if g == band_width: word count = (n - band + 1)*(1 - d*m);
 	if( options.useDistance ){
-		int band = options.band_width + 1;
+		// int band = options.band_width + 1;
 		int invd = int( 1.0 / (options.distance_thd + 1E-9) );
-		int k = len_eff < invd ? len_eff : invd;
+		// int k = len_eff < invd ? len_eff : invd;
 		int ks = len_eff - ss + 1;
 		int kn = len_eff - NAA + 1;
 		int ks2 = invd - ss;
 		int kn2= invd - NAA;
-		int ks3 = int((len_eff - band + 1.0)*(1.0 - options.distance_thd * ss));
-		int kn3 = int((len_eff - band + 1.0)*(1.0 - options.distance_thd * NAA));
+		// int ks3 = int((len_eff - band + 1.0)*(1.0 - options.distance_thd * ss));
+		// int kn3 = int((len_eff - band + 1.0)*(1.0 - options.distance_thd * NAA));
 		//if( ks3 > ks2 ) ks2 = ks3;
 		//if( kn3 > kn2 ) kn2 = kn3;
 		required_aa1 = required_aas = (ks2 < ks ? ks2 : ks);
@@ -2952,40 +2952,41 @@ void SequenceDB::ClusterOne( Sequence *seq, int id, WordTable & table,
 		if ( (id+1) % 10000 == 0 ) printf( "\r..........%9i  finished  %9i  clusters\n", id+1, size );
 	}
 }
-#include<assert.h>
+
+
 size_t SequenceDB::MinimalMemory( int frag_no, int bsize, int T, const Options & options, size_t extra )
 {
 	int N = sequences.size();
 	int F = frag_no < MAX_TABLE_SEQ ? frag_no : MAX_TABLE_SEQ;
 	size_t mem_need = 0;
-	size_t mem, mega = 1000000;
+	size_t mem;
 	int table = T > 1 ? 2 : 1;
 
 	printf( "\nApproximated minimal memory consumption:\n" );
 	mem = N*sizeof(Sequence) + total_desc + N + extra;
 	if( options.store_disk == false ) mem += total_letter + N;
-	printf( "%-16s: %zuM\n", "Sequence", mem/mega );
+	printf( "%-16s: %zuM\n", "Sequence", mem/MEGA_MiBi );
 	mem_need += mem;
 
 	mem = bsize;
-	printf( "%-16s: %i X %zuM = %zuM\n", "Buffer", T, mem/mega, T*mem/mega );
+	printf( "%-16s: %i X %zuM = %zuM\n", "Buffer", T, mem/MEGA_MiBi, T*mem/MEGA_MiBi );
 	mem_need += T*mem;
 
 	mem = F*(sizeof(Sequence*) + sizeof(IndexCount)) + NAAN*sizeof(NVector<IndexCount>);
-	printf( "%-16s: %i X %zuM = %zuM\n", "Table", table, mem/mega, table*mem/mega );
+	printf( "%-16s: %i X %zuM = %zuM\n", "Table", table, mem/MEGA_MiBi, table*mem/MEGA_MiBi );
 	mem_need += table*mem;
 
 	mem = sequences.capacity()*sizeof(Sequence*) + N*sizeof(int);
 	mem += Comp_AAN_idx.size()*sizeof(int);
-	printf( "%-16s: %zuM\n", "Miscellaneous", mem/mega );
+	printf( "%-16s: %zuM\n", "Miscellaneous", mem/MEGA_MiBi );
 	mem_need += mem;
 
-	printf( "%-16s: %zuM\n\n", "Total", mem_need/mega );
+	printf( "%-16s: %zuM\n\n", "Total", mem_need/MEGA_MiBi );
 
 	if(options.max_memory and options.max_memory < mem_need + 50*table ){
 		char msg[200];
 		sprintf( msg, "not enough memory, please set -M option greater than %zu\n", 
-				50*table + mem_need/mega );
+				50*table + mem_need/MEGA_MiBi );
 		bomb_error(msg);
 	}
 	return mem_need;
@@ -3030,7 +3031,7 @@ void Options::ComputeTableLimits( int min_len, int max_len, int typical_len, siz
 }
 void SequenceDB::DoClustering( int T, const Options & options )
 {
-	int i, j, k;
+	int i, k;
 	int NAA = options.NAA;
 	double aa1_cutoff = options.cluster_thd;
 	double aas_cutoff = 1 - (1-options.cluster_thd)*4;
@@ -3038,8 +3039,8 @@ void SequenceDB::DoClustering( int T, const Options & options )
 	int seq_no = sequences.size();
 	int frag_no = seq_no;
 	int frag_size = options.frag_size;
-	int len, len_bound;
-	int flag;
+	// int len, len_bound;
+	// int flag;
 	valarray<size_t>  letters(T);
 
 	//printf( "%li\n", options.mem_limit );
@@ -3066,10 +3067,10 @@ void SequenceDB::DoClustering( int T, const Options & options )
 	WordTable last_table( options.NAA, NAAN );
 
 	int N = sequences.size();
-	int K = N - 100 * T;
+	// int K = N - 100 * T;
 	size_t mem_need = MinimalMemory( frag_no, buffers[0].total_bytes, T, options );
-	size_t mem_limit = MemoryLimit( mem_need, options );
-	size_t mem, mega = 1000000;
+	// TODO: size_t mem_limit = MemoryLimit( mem_need, options );
+	size_t mem;
 	size_t tabsize = 0;
 	int remaining = 0;
 
@@ -3219,7 +3220,7 @@ void SequenceDB::DoClustering( int T, const Options & options )
 		word_table.size = 0;
 	}
 	printf( "\n%9i  finished  %9i  clusters\n", sequences.size(), rep_seqs.size() );
-	mem = (mem_need + tabsize*sizeof(IndexCount))/mega;
+	mem = (mem_need + tabsize*sizeof(IndexCount))/MEGA_MiBi;
 	printf( "\nApproximated maximum memory consumption: %zuM\n", mem );
 	last_table.Clear();
 	word_table.Clear();
@@ -3237,32 +3238,33 @@ int SequenceDB::CheckOneAA( Sequence *seq, WordTable & table, WorkingParam & par
 	NVector<IndexCount> & lookCounts = buf.lookCounts;
 	NVector<uint32_t> & indexMapping = buf.indexMapping;
 	Vector<INTs> & word_encodes_no = buf.word_encodes_no;
-	Vector<INTs> & aap_list = buf.aap_list;
-	Vector<INTs> & aap_begin = buf.aap_begin;
+	// Vector<INTs> & aap_list = buf.aap_list;
+	// Vector<INTs> & aap_begin = buf.aap_begin;
 	Vector<int>  & word_encodes = buf.word_encodes;
-	Vector<int>  & taap = buf.taap;
+	// Vector<int>  & taap = buf.taap;
 	double aa1_cutoff = param.aa1_cutoff;
 	double aa2_cutoff = param.aas_cutoff;
 	double aan_cutoff = param.aan_cutoff;
 
 	char *seqi = seq->data;
-	int j, k, j1, len = seq->size;
+	int k, j1;
+	unsigned int len = seq->size;
 	int flag = 0;
 	int frag_size = options.frag_size;
 	int & aln_cover_flag = param.aln_cover_flag;
 	int & required_aa1 = param.required_aa1;
 	int & required_aa2 = param.required_aas;
 	int & required_aan = param.required_aan;
-	int & min_aln_lenS = param.min_aln_lenS;
-	int & min_aln_lenL = param.min_aln_lenL;
+	unsigned int & min_aln_lenS = param.min_aln_lenS;
+	unsigned int & min_aln_lenL = param.min_aln_lenL;
 
 	int NAA = options.NAA;
 	int S = table.sequences.size();
 	int len_eff = len;
 
 	if( S ){
-		int min = table.sequences[S-1]->size;
-		if( min < len ){
+		unsigned int min = table.sequences[S-1]->size;
+		if( min < len ) {
 			if( len * options.diff_cutoff2 > min ) min = (int)(len * options.diff_cutoff2);
 			if( (len - options.diff_cutoff_aa2) > min ) min = len - options.diff_cutoff_aa2;
 			len_eff = min;
@@ -3272,8 +3274,8 @@ int SequenceDB::CheckOneAA( Sequence *seq, WordTable & table, WorkingParam & par
     //liwz 2016 01, seq is too short for the shortest (longer) seq in word_table to satisfy -aL option
     //longer seqeunce * -aL -band_width
     if ( S ) {
-		int min = table.sequences[S-1]->size;
-		int min_red = min * options.long_coverage - options.band_width;
+		unsigned int min = table.sequences[S-1]->size;
+		unsigned int min_red = min * options.long_coverage - options.band_width;
 		if (len < min_red) return 0; // return flag=0
 	} 
 
@@ -3288,18 +3290,19 @@ int SequenceDB::CheckOneAA( Sequence *seq, WordTable & table, WorkingParam & par
 
 	// lookup_aan
 	int aan_no = len - options.NAA + 1;
-	int M = frag_size ? table.frag_count : S;
+	// int M = frag_size ? table.frag_count : S;
 	table.CountWords(aan_no, word_encodes, word_encodes_no, lookCounts, indexMapping, false, required_aan);
 
 	// contained_in_old_lib()
-	int len_upper_bound = param.len_upper_bound;
-	int len_lower_bound = param.len_lower_bound;
-	int band_left, band_right, best_score, band_width1, best_sum, len2, alnln, len_eff1;
+	unsigned int len_upper_bound = param.len_upper_bound;
+	unsigned int len_lower_bound = param.len_lower_bound;
+	int band_left, band_right, best_score, band_width1, best_sum, alnln, len_eff1;
+	unsigned int len2;
 	int tiden_no, band_center;
 	float tiden_pc, distance=0;
-	int talign_info[5];
-	int best1, sum;
-	INTs *lookptr;
+	unsigned int talign_info[5];
+	int sum;
+	// INTs *lookptr;
 	char *seqj;
 	int frg2 = frag_size ? (len - NAA + options.band_width ) / frag_size + 1 + 1 : 0;
 	int lens;
@@ -3408,10 +3411,10 @@ int SequenceDB::CheckOneEST( Sequence *seq, WordTable & table, WorkingParam & pa
 	NVector<IndexCount> & lookCounts = buf.lookCounts;
 	NVector<uint32_t> & indexMapping = buf.indexMapping;
 	Vector<INTs> & word_encodes_no = buf.word_encodes_no;
-	Vector<INTs> & aap_list = buf.aap_list;
-	Vector<INTs> & aap_begin = buf.aap_begin;
+	// Vector<INTs> & aap_list = buf.aap_list;
+	// Vector<INTs> & aap_begin = buf.aap_begin;
 	Vector<int>  & word_encodes = buf.word_encodes;
-	Vector<int>  & taap = buf.taap;
+	// Vector<int>  & taap = buf.taap;
 	Vector<int> & aan_list_comp = buf.aan_list_comp;
 	char *seqi_comp = & buf.seqi_comp[0];
 
@@ -3419,16 +3422,17 @@ int SequenceDB::CheckOneEST( Sequence *seq, WordTable & table, WorkingParam & pa
 	int & required_aa1 = param.required_aa1;
 	int & required_aas = param.required_aas;
 	int & required_aan = param.required_aan;
-	int & min_aln_lenS = param.min_aln_lenS;
-	int & min_aln_lenL = param.min_aln_lenL;
+	unsigned int & min_aln_lenS = param.min_aln_lenS;
+	unsigned int & min_aln_lenL = param.min_aln_lenL;
 
 	char *seqi = seq->data;
-	int j, len = seq->size;
+	int j;
+	unsigned int len = seq->size;
 	int flag = 0;
 	int S = table.sequences.size();
 	int len_eff = len;
 	if( S ){
-		int min = table.sequences[S-1]->size;
+		unsigned int min = table.sequences[S-1]->size;
 		if( min < len ){
 			if( len * options.diff_cutoff2 > min ) min = (int)(len * options.diff_cutoff2);
 			if( (len - options.diff_cutoff_aa2) > min ) min = len - options.diff_cutoff_aa2;
@@ -3440,8 +3444,8 @@ int SequenceDB::CheckOneEST( Sequence *seq, WordTable & table, WorkingParam & pa
         //liwz 2016 01, seq is too short for the shortest (longer) seq in word_table to satisfy -aL option
         //longer seqeunce * -aL -band_width
         if ( S ) {
-		int min = table.sequences[S-1]->size;
-		int min_red = min * options.long_coverage - options.band_width;
+		unsigned int min = table.sequences[S-1]->size;
+		unsigned int min_red = min * options.long_coverage - options.band_width;
 		if (len < min_red) return 0; // return flag=0
 	} 
 
@@ -3463,12 +3467,13 @@ int SequenceDB::CheckOneEST( Sequence *seq, WordTable & table, WorkingParam & pa
 	int aan_no = len - options.NAA + 1;
 
 	// contained_in_old_lib()
-	int len_upper_bound = param.len_upper_bound;
-	int len_lower_bound = param.len_lower_bound;
-	int band_left, band_right, best_score, band_width1, best_sum, len2, alnln, len_eff1;
+	unsigned int len_upper_bound = param.len_upper_bound;
+	unsigned int len_lower_bound = param.len_lower_bound;
+	int band_left, band_right, best_score, band_width1, best_sum, alnln, len_eff1;
+	unsigned int len2;
 	int tiden_no, band_center;
 	float tiden_pc, distance=0;
-	int talign_info[5];
+	unsigned int talign_info[5];
 	int j0, comp, lens;
 	char *seqj;
 
@@ -3593,11 +3598,11 @@ int SequenceDB::CheckOneEST( Sequence *seq, WordTable & table, WorkingParam & pa
 }
 void SequenceDB::ComputeDistance( const Options & options )
 {
-	int i, j, N = sequences.size();
+	unsigned int N = sequences.size();
 	int best_score, best_sum;
-	int band_width1, band_left, band_center, band_right, required_aa1;
+	int band_width1, band_left, band_center, band_right;
 	int tiden_no, alnln;
-	int talign_info[5];
+	unsigned int talign_info[5];
 	float distance;
 	WorkingBuffer buf( N, max_len, options );
 
@@ -3605,18 +3610,18 @@ void SequenceDB::ComputeDistance( const Options & options )
 
 	Sequence comseq( *sequences[0] );
 
-	for(i=0; i<N; i++){
+	for(unsigned int i=0; i<N; i++) {
 		Sequence *seq = sequences[i];
 		char *seqi = seq->data;
-		int len = seq->size;
+		unsigned int len = seq->size;
 		buf.EncodeWords( seq, options.NAA, false );
 		buf.ComputeAAP2( seqi, seq->size );
 		dists[i][i] = 0.0;
 		if((i+1)%1000 ==0) printf( "%9i\n", (i+1) );
-		for(j=0; j<i; j++){
+		for(unsigned int j=0; j<i; j++) {
 			Sequence *rep = sequences[j];
 			char *seqj = rep->data;
-			int len2 = rep->size;
+			unsigned int len2 = rep->size;
 			band_width1 = (options.band_width < len+len2-2 ) ? options.band_width : len+len2-2;
 			diag_test_aapn_est(NAA1, seqj, len, len2, buf, best_sum,
 					band_width1, band_left, band_center, band_right, 0);
@@ -3628,14 +3633,14 @@ void SequenceDB::ComputeDistance( const Options & options )
 		if (not options.option_r ) break;
 		comseq.index = seq->index;
 		comseq.size = len;
-		for(j=0; j<len; j++) comseq.data[i] = seq->data[len-i-1];
+		for(unsigned int j=0; j<len; j++) comseq.data[i] = seq->data[len-i-1];
 		seqi = comseq.data;
 		buf.EncodeWords( &comseq, options.NAA, false );
 		buf.ComputeAAP2( seqi, seq->size );
-		for(j=0; j<i; j++){
+		for(unsigned int j=0; j<i; j++){
 			Sequence *rep = sequences[j];
 			char *seqj = rep->data;
-			int len2 = rep->size;
+			unsigned int len2 = rep->size;
 			band_width1 = (options.band_width < len+len2-2 ) ? options.band_width : len+len2-2;
 			diag_test_aapn_est(NAA1, seqj, len, len2, buf, best_sum,
 					band_width1, band_left, band_center, band_right, 0);
@@ -3649,11 +3654,11 @@ void SequenceDB::ComputeDistance( const Options & options )
 	std::string output = options.output + ".dist";
 	FILE *fout = fopen( output.c_str(), "w+" );
 	fprintf( fout, "1" );
-	for(i=1; i<N; i++) fprintf( fout, "\t%i", i+1 );
+	for(unsigned int i=1; i<N; i++) fprintf( fout, "\t%i", i+1 );
 	fprintf( fout, "\n" );
-	for(i=0; i<N; i++){
+	for(unsigned int i=0; i<N; i++) {
 		fprintf( fout, "%g", dists[i][0] );
-		for(j=1; j<N; j++) fprintf( fout, "\t%g", dists[i][j] );
+		for(unsigned int j=1; j<N; j++) fprintf( fout, "\t%g", dists[i][j] );
 		fprintf( fout, "\n" );
 	}
 	fclose( fout );
@@ -3668,8 +3673,8 @@ void SequenceDB::DoClustering( const Options & options )
 	int seq_no = sequences.size();
 	int frag_no = seq_no;
 	int frag_size = options.frag_size;
-	int len, len_bound;
-	int flag;
+	// int len, len_bound;
+	// int flag;
 
 #if 0
 	ComputeDistance( options );
@@ -3697,8 +3702,7 @@ void SequenceDB::DoClustering( const Options & options )
 	WordTable word_table( options.NAA, NAAN );
 
 	size_t mem_need = MinimalMemory( frag_no, buffer.total_bytes, 1, options );
-	size_t mem_limit = MemoryLimit( mem_need, options );
-	size_t mem, mega = 1000000;
+	// TODO: size_t mem_limit = MemoryLimit( mem_need, options );
 	int N = sequences.size();
 
 	size_t total_letters = total_letter;
@@ -3770,9 +3774,12 @@ void SequenceDB::DoClustering( const Options & options )
 		//if( i && i < m ) printf( "\r---------- %6i remaining sequences to the next cycle\n", m-i );
 		word_table.Clear();
 	}
-	printf( "\n%9i  finished  %9i  clusters\n", sequences.size(), rep_seqs.size() );
-	mem = (mem_need + tabsize*sizeof(IndexCount))/mega;
-	printf( "\nApproximated maximum memory consumption: %liM\n", mem );
+	auto mem = (mem_need + tabsize * sizeof(IndexCount)) / MEGA_MiBi;
+	std::cout << std::endl;
+	std::cout << sequences.size() << "  finished  " << rep_seqs.size() << "  clusters";
+	std::cout << std::endl;
+	std::cout << "Approximated maximum memory consumption: " << mem << "M";
+	std::cout << std::endl;
 	temp_files.Clear();
 	word_table.Clear();
 
@@ -3781,11 +3788,12 @@ void SequenceDB::DoClustering( const Options & options )
 	for(i=0; i<word_table.indexCounts.size(); i++) zeros += word_table.indexCounts[i].Size() ==0;
 	printf( "%9i  empty entries out of  %9i\n", zeros, word_table.indexCounts.size() );
 #endif
+
 }
 
 void SequenceDB::ClusterTo( SequenceDB & other, const Options & options )
 {
-	int i, is, js, flag;
+	int i, flag;
 	int len, len_tmp, len_lower_bound, len_upper_bound;
 	int NR2_red_no = 0;
 	int aan_no = 0;
@@ -3819,7 +3827,7 @@ void SequenceDB::ClusterTo( SequenceDB & other, const Options & options )
 	if( T >1 ) omp_set_num_threads(T);
 
 	size_t mem_need = MinimalMemory( N, buffer.total_bytes, T, options, other.total_letter+other.total_desc );
-	size_t mem_limit = MemoryLimit( mem_need, options );
+	// TODO: size_t mem_limit = MemoryLimit( mem_need, options );
 
 	Options opts( options );
 	opts.ComputeTableLimits( min_len, max_len, len_n50, mem_need );
@@ -3867,7 +3875,7 @@ void SequenceDB::ClusterTo( SequenceDB & other, const Options & options )
 				Sequence *seq = sequences[j];
 				if( seq->state & IS_REDUNDANT ) continue;
 				int len = seq->size;
-				char *seqi = seq->data;
+				// char *seqi = seq->data;
 				int len_upper_bound = upper_bound_length_rep(len,options);
 				int len_lower_bound = len - options.diff_cutoff_aa2;
 
