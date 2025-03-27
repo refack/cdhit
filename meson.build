@@ -15,14 +15,19 @@ openmp_link_flag = get_option('openmp') ? ['-fopenmp'] : []
 zlib_link_flag = get_option('zlib') ? ['-lz'] : []
 ld_flags = openmp_link_flag + zlib_link_flag
 
+common_sources = [
+  'cdhit-common.c++',
+  'cdhit-utility.c++',
+]
+
 # Source files
 sources = {
-  'cd-hit': files('cdhit-common.c++', 'cdhit-utility.c++', 'cdhit.c++'),
-  'cd-hit-2d': files('cdhit-common.c++', 'cdhit-utility.c++', 'cdhit-2d.c++'),
-  'cd-hit-est': files('cdhit-common.c++', 'cdhit-utility.c++', 'cdhit-est.c++'),
-  'cd-hit-est-2d': files('cdhit-common.c++', 'cdhit-utility.c++', 'cdhit-est-2d.c++'),
-  'cd-hit-div': files('cdhit-common.c++', 'cdhit-utility.c++', 'cdhit-div.c++'),
-  'cd-hit-454': files('cdhit-common.c++', 'cdhit-utility.c++', 'cdhit-454.c++'),
+  'cd-hit': files(common_sources, 'cdhit.c++'),
+  'cd-hit-2d': files(common_sources, 'cdhit-2d.c++'),
+  'cd-hit-est': files(common_sources, 'cdhit-est.c++'),
+  'cd-hit-est-2d': files(common_sources, 'cdhit-est-2d.c++'),
+  'cd-hit-div': files(common_sources, 'cdhit-div.c++'),
+  'cd-hit-454': files(common_sources, 'cdhit-454.c++'),
 }
 
 # Build targets
