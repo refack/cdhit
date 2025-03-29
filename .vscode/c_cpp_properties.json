@@ -10,15 +10,36 @@
                 "UNICODE",
                 "_UNICODE",
                 "WITH_ZLIB",
-                "NO_OLDNAMES"
+                "NO_OLDNAMES",
+                "CDHIT_VERSION",
             ],
             "windowsSdkVersion": "10.0.26100.0",
             "compilerPath": "C:\\bin\\tools\\scoop\\apps\\msys2\\current\\mingw64\\bin\\g++.exe",
             "cStandard": "c23",
             "cppStandard": "c++23",
             "intelliSenseMode": "windows-gcc-x64",
-            "configurationProvider": "ms-vscode.makefile-tools"
-        }
+            "configurationProvider": "mesonbuild.mesonbuild"
+        },
+        {
+            "name": "CL 64x64 shell",
+            "includePath": [
+                "${workspaceFolder}/src/**"
+            ],
+            "defines": [
+                "WIN32",
+                "UNICODE",
+                "_UNICODE",
+                "WITH_ZLIB",
+                "NO_OLDNAMES",
+                "CDHIT_VERSION",
+            ],
+            "windowsSdkVersion": "10.0.26100.0",
+            "compilerPath": "C:\\bin\\dev\\Microsoft\\VS2022Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\cl.exe",
+            "cStandard": "c23",
+            "cppStandard": "c++23",
+            "intelliSenseMode": "windows-msvc-x64",
+            "configurationProvider": "mesonbuild.mesonbuild"
+        },
     ],
     "version": 4
 }

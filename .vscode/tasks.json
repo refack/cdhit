@@ -11,7 +11,27 @@
 				"kind": "build",
 				"isDefault": true
 			},
-			"label": "Meson: Build all targets"
-		}
+			"target": "src/cd-hit-est:executable",
+			"label": "Meson: cd-hit-est"
+		},
+		{
+			"type": "meson",
+			"mode": "build",
+			"problemMatcher": [
+				"$meson-gcc"
+			],
+			"group": {
+				"kind": "build"
+			},
+			"label": "Meson: Build all targets",
+			"options": {
+				"args": [
+					"--buildtype",
+					"debug",
+					"-v",
+					"--ninja-args", "-v"
+				]
+			}
+		},
 	]
 }
