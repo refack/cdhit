@@ -26,87 +26,14 @@
 // =============================================================================
 
 #include "cdhit-common.h"
+
+import Options;
+
 #include<valarray>
 #include<stdint.h>
 #include<assert.h>
 #include<limits.h>
 #include<assert.h>
-
-#ifndef NO_OPENMP
-
-#include<omp.h>
-
-#define WITH_OPENMP " (+OpenMP)"
-
-#else
-
-#define WITH_OPENMP ""
-
-#define omp_set_num_threads(T) (T = T)
-#define omp_get_thread_num() 0
-
-#endif
-
-//class function definition
-const char aa[] = {"ARNDCQEGHILKMFPSTWYVBZX"};
-//{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,2,6,20};
-int aa2idx[] = {0, 2, 4, 3, 6, 13,7, 8, 9,20,11,10,12, 2,20,14,
-                5, 1,15,16,20,19,17,20,18, 6};
-    // idx for  A  B  C  D  E  F  G  H  I  J  K  L  M  N  O  P
-    //          Q  R  S  T  U  V  W  X  Y  Z
-    // so  aa2idx[ X - 'A'] => idx_of_X, eg aa2idx['A' - 'A'] => 0,
-    // and aa2idx['M'-'A'] => 12
-
-int BLOSUM62[] = {
-  4,                                                                  // A
- -1, 5,                                                               // R
- -2, 0, 6,                                                            // N
- -2,-2, 1, 6,                                                         // D
-  0,-3,-3,-3, 9,                                                      // C
- -1, 1, 0, 0,-3, 5,                                                   // Q
- -1, 0, 0, 2,-4, 2, 5,                                                // E
-  0,-2, 0,-1,-3,-2,-2, 6,                                             // G
- -2, 0, 1,-1,-3, 0, 0,-2, 8,                                          // H
- -1,-3,-3,-3,-1,-3,-3,-4,-3, 4,                                       // I
- -1,-2,-3,-4,-1,-2,-3,-4,-3, 2, 4,                                    // L
- -1, 2, 0,-1,-3, 1, 1,-2,-1,-3,-2, 5,                                 // K
- -1,-1,-2,-3,-1, 0,-2,-3,-2, 1, 2,-1, 5,                              // M
- -2,-3,-3,-3,-2,-3,-3,-3,-1, 0, 0,-3, 0, 6,                           // F
- -1,-2,-2,-1,-3,-1,-1,-2,-2,-3,-3,-1,-2,-4, 7,                        // P
-  1,-1, 1, 0,-1, 0, 0, 0,-1,-2,-2, 0,-1,-2,-1, 4,                     // S
-  0,-1, 0,-1,-1,-1,-1,-2,-2,-1,-1,-1,-1,-2,-1, 1, 5,                  // T
- -3,-3,-4,-4,-2,-2,-3,-2,-2,-3,-2,-3,-1, 1,-4,-3,-2,11,               // W
- -2,-2,-2,-3,-2,-1,-2,-3, 2,-1,-1,-2,-1, 3,-3,-2,-2, 2, 7,            // Y
-  0,-3,-3,-3,-1,-2,-2,-3,-3, 3, 1,-2, 1,-1,-2,-2, 0,-3,-1, 4,         // V
- -2,-1, 3, 4,-3, 0, 1,-1, 0,-3,-4, 0,-3,-3,-2, 0,-1,-4,-3,-3, 4,      // B
- -1, 0, 0, 1,-3, 3, 4,-2, 0,-3,-3, 1,-1,-3,-1, 0,-1,-3,-2,-2, 1, 4,   // Z
-  0,-1,-1,-1,-2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-2, 0, 0,-2,-1,-1,-1,-1,-1 // X
-//A  R  N  D  C  Q  E  G  H  I  L  K  M  F  P  S  T  W  Y  V  B  Z  X
-//0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19  2  6 20
-};
-
-
-int na2idx[] = {0, 4, 1, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-                4, 4, 4, 3, 3, 4, 4, 4, 4, 4};
-    // idx for  A  B  C  D  E  F  G  H  I  J  K  L  M  N  O  P
-    //          Q  R  S  T  U  V  W  X  Y  Z
-    // so aa2idx[ X - 'A'] => idx_of_X, eg aa2idx['A' - 'A'] => 0,
-    // and aa2idx['M'-'A'] => 4
-int BLOSUM62_na[] = {
-  2,                  // A
- -2, 2,               // C
- -2,-2, 2,            // G
- -2,-2,-2, 2,         // T
- -2,-2,-2, 1, 2,      // U
- -2,-2,-2,-2,-2, 1,   // N
-  0, 0, 0, 0, 0, 0, 1 // X
-//A  C  G  T  U  N  X
-//0  1  2  3  3  4  5
-};
-
-constexpr auto MEGA_MiBi = 1'000'000;
-
-void setaa_to_na();
 
 struct TempFile
 {
@@ -153,7 +80,6 @@ struct TempFiles
 	}
 };
 
-const char *temp_dir = "";
 TempFiles temp_files;
 
 FILE* OpenTempFile( const char *dir = NULL )
@@ -165,291 +91,13 @@ FILE* OpenTempFile( const char *dir = NULL )
 	}
 	return file->file;
 }
-static void CleanUpTempFiles()
-{
-	if( temp_files.files.Size() ) printf( "Clean up temporary files ...\n" );
-	temp_files.Clear();
-}
 
-int NAA1 ;
-int NAA2 ;
-int NAA3 ;
-int NAA4 ;
-int NAA5 ;
-int NAA6 ;
-int NAA7 ;
-int NAA8 ;
-int NAA9 ;
-int NAA10;
-int NAA11;
-int NAA12;
-int NAAN_array[13] = { 1 };
-
-void InitNAA( int max )
-{
-	NAA1  = NAAN_array[1]  = max;
-	NAA2  = NAAN_array[2]  = NAA1 * NAA1;
-	NAA3  = NAAN_array[3]  = NAA1 * NAA2;
-	NAA4  = NAAN_array[4]  = NAA2 * NAA2;
-	NAA5  = NAAN_array[5]  = NAA2 * NAA3;
-	NAA6  = NAAN_array[6]  = NAA3 * NAA3;
-	NAA7  = NAAN_array[7]  = NAA3 * NAA4;
-	NAA8  = NAAN_array[8]  = NAA4 * NAA4;
-	NAA9  = NAAN_array[9]  = NAA4 * NAA5;
-	NAA10 = NAAN_array[10] = NAA5 * NAA5;
-	NAA11 = NAAN_array[11] = NAA5 * NAA6;
-	NAA12 = NAAN_array[12] = NAA6 * NAA6;
-}
-
-extern Options options;
-ScoreMatrix mat;
-Vector<int> Comp_AAN_idx;
+Vector<size_t> Comp_AAN_idx;
 
 void make_comp_iseq(int len, char *iseq_comp, char *iseq)
 {
 	int i, c[6] = {3,2,1,0,4,5};
 	for (i=0; i<len; i++) iseq_comp[i] = c[ (int)iseq[len-i-1] ];
-} // make_comp_iseq
-
-bool Options::SetOptionCommon( const char *flag, const char *value )
-{
-	int intval = atoi( value );
-	if      (strcmp(flag, "-i" ) == 0) input = value;
-	else if (strcmp(flag, "-j" ) == 0) input_pe = value;
-	else if (strcmp(flag, "-o" ) == 0) output = value;
-	else if (strcmp(flag, "-op") == 0) output_pe = value;
-	else if (strcmp(flag, "-M" ) == 0) max_memory  = atoll(value) * 1000000;
-	else if (strcmp(flag, "-l" ) == 0) min_length  = intval;
-	else if (strcmp(flag, "-c" ) == 0) cluster_thd  = atof(value), useIdentity = true;
-	else if (strcmp(flag, "-D" ) == 0) distance_thd  = atof(value), useDistance = true;
-	else if (strcmp(flag, "-b" ) == 0) band_width  = intval;
-	else if (strcmp(flag, "-n" ) == 0) NAA       = intval;
-	else if (strcmp(flag, "-d" ) == 0) des_len   = intval;
-	else if (strcmp(flag, "-s" ) == 0) diff_cutoff  = atof(value);
-	else if (strcmp(flag, "-S" ) == 0) diff_cutoff_aa  = intval;
-	else if (strcmp(flag, "-B" ) == 0) store_disk  = intval;
-	else if (strcmp(flag, "-P" ) == 0) PE_mode  = intval;
-	else if (strcmp(flag, "-cx") == 0) trim_len = intval;
-	else if (strcmp(flag, "-cy") == 0) trim_len_R2 = intval;
-	else if (strcmp(flag, "-ap") == 0) align_pos = intval;
-	else if (strcmp(flag, "-sc") == 0) sort_output = intval;
-	else if (strcmp(flag, "-sf") == 0) sort_outputf = intval;
-	else if (strcmp(flag, "-p" ) == 0) print  = intval;
-	else if (strcmp(flag, "-g" ) == 0) cluster_best  = intval;
-	else if (strcmp(flag, "-G" ) == 0) global_identity  = intval;
-	else if (strcmp(flag, "-aL") == 0) long_coverage = atof(value);
-	else if (strcmp(flag, "-AL") == 0) long_control = intval;
-	else if (strcmp(flag, "-aS") == 0) short_coverage = atof(value);
-	else if (strcmp(flag, "-AS") == 0) short_control = intval;
-	else if (strcmp(flag, "-A" ) == 0) min_control  = intval;
-	else if (strcmp(flag, "-uL") == 0) long_unmatch_per = atof(value);
-	else if (strcmp(flag, "-uS") == 0) short_unmatch_per = atof(value);
-	else if (strcmp(flag, "-U") == 0) unmatch_len = intval;
-	else if (strcmp(flag, "-tmp" ) == 0) temp_dir  = value;
-	else if (strcmp(flag, "-bak" ) == 0) backupFile  = intval;
-	else if (strcmp(flag, "-T" ) == 0){
-#ifndef NO_OPENMP
-		int cpu = omp_get_num_procs();
-		threads  = intval;
-		if( threads > cpu ){
-			threads = cpu;
-			printf( "Warning: total number of CPUs in the system is %i\n", cpu );
-		}else if( threads < 0 ){
-			threads += cpu;
-			if( threads < 0 ) threads = 0;
-		}
-		if( threads == 0 ){
-			threads = cpu;
-			printf( "total number of CPUs in the system is %i\n", cpu );
-		}
-		if( threads != intval ) printf( "Actual number of CPUs to be used: %i\n\n", threads );
-#else
-		printf( "Option -T is ignored: multi-threading with OpenMP is NOT enabled!\n" );
-#endif
-	}else return false;
-	return true;
-}
-bool Options::SetOption( const char *flag, const char *value )
-{
-	if( is454 ){
-		if( strcmp(flag, "-s") == 0 ) return false;
-		else if( strcmp(flag, "-S") == 0 ) return false;
-		else if( strcmp(flag, "-G") == 0 ) return false;
-		else if( strcmp(flag, "-A") == 0 ) return false;
-		else if( strcmp(flag, "-r") == 0 ) return false;
-		else if( strcmp(flag, "-D") == 0 ){ max_indel = atoi(value); return true; }
-	}
-	if( SetOptionCommon( flag, value ) ) return true;
-	if (strcmp(flag, "-t" ) == 0) tolerance = atoi(value);
-	else if (strcmp(flag, "-F" ) == 0) frag_size = atoi(value);
-	else if (has2D && SetOption2D( flag, value ) ) return true;
-	else if (isEST && SetOptionEST( flag, value ) ) return true;
-	else return false;
-	return true;
-}
-bool Options::SetOption2D( const char *flag, const char *value )
-{
-	if( SetOptionCommon( flag, value ) ) return true;
-	if (strcmp(flag, "-i2" ) == 0) input2 = value;
-        else if (strcmp(flag, "-j2" ) == 0) input2_pe = value;
-	else if (strcmp(flag, "-s2") == 0) diff_cutoff2 = atof(value);
-	else if (strcmp(flag, "-S2") == 0) diff_cutoff_aa2 = atoi(value);
-	else return false;
-	return true;
-}
-bool Options::SetOptionEST( const char *flag, const char *value )
-{
-	NAA_top_limit = 12;
-	if( SetOptionCommon( flag, value ) ) return true;
-	if (strcmp(flag, "-r" ) == 0) option_r  = atoi(value); 
-	else if (strcmp(flag, "-gap") == 0) mat.gap = MAX_SEQ * atoi(value);
-	else if (strcmp(flag, "-gap-ext") == 0) mat.ext_gap = MAX_SEQ * atoi(value);
-	else if (strcmp(flag, "-match") == 0) mat.set_match( atoi(value) );
-	else if (strcmp(flag, "-mismatch") == 0) mat.set_mismatch( atoi(value) );
-	else if (strcmp(flag, "-mask") == 0){
-		string letters = value;
-		int i, n = letters.size();
-		for(i=0; i<n; i++){
-			char ch = toupper( letters[i] );
-			if( ch < 'A' || ch > 'Z' ) continue;
-			na2idx[ ch - 'A' ] = 5;
-		}
-		setaa_to_na();
-	}else return false;
-	return true;
-}
-bool Options::SetOptions( int argc, char *argv[], bool twod, bool est )
-{
-	int i, n;
-	char date[100];
-	strcpy( date, __DATE__ );
-	n = strlen( date );
-	for(i=1; i<n; i++) if( date[i-1] == ' ' and date[i] == ' ' ) date[i] = '0';
-	printf( "================================================================\n" );
-	printf( "Program: CD-HIT, V" CDHIT_VERSION WITH_OPENMP ", %s, " __TIME__ "\n", date );
-	printf( "Command:" );
-	n = 9;
-	for(i=0; i<argc; i++){
-		n += strlen( argv[i] ) + 1;
-		if( n >= 64 ){
-			printf( "\n         %s", argv[i] );
-			n = strlen( argv[i] ) + 9;
-		}else{
-			printf( " %s", argv[i] );
-		}
-	}
-	printf( "\n\n" );
-	time_t tm = time(NULL);
-	printf( "Started: %s", ctime(&tm) );
-	printf( "================================================================\n" );
-	printf( "                            Output                              \n" );
-	printf( "----------------------------------------------------------------\n" );
-	has2D = twod;
-	isEST = est;
-	for (i=1; i+1<argc; i+=2) if ( SetOption( argv[i], argv[i+1] ) == 0) return false;
-	if( i < argc ) return false;
-
-	atexit( CleanUpTempFiles );
-	return true;
-}
-void Options::Validate()
-{
-	if( useIdentity and useDistance ) bomb_error( "can not use both identity cutoff and distance cutoff" );
-	if( useDistance ){
-		if ((distance_thd > 1.0) || (distance_thd < 0.0)) bomb_error("invalid distance threshold");
-	}else if( isEST ){
-		if ((cluster_thd > 1.0) || (cluster_thd < 0.8)) bomb_error("invalid clstr threshold, should >=0.8");
-	}else{
-		if ((cluster_thd > 1.0) || (cluster_thd < 0.4)) bomb_error("invalid clstr");
-	}
-
-        if (input.size()  == 0) bomb_error("no input file");
-        if (output.size() == 0) bomb_error("no output file");
-        if (PE_mode) {
-          if (input_pe.size()  == 0) bomb_error("no input file for R2 sequences in PE mode");
-          if (output_pe.size() == 0) bomb_error("no output file for R2 sequences in PE mode");
-        }
-        if (isEST && (align_pos==1)) option_r = 0; 
-
-	if (band_width < 1 ) bomb_error("invalid band width");
-	if (NAA < 2 || NAA > NAA_top_limit) bomb_error("invalid word length");
-	if (des_len < 0 ) bomb_error("too short description, not enough to identify sequences");
-	if (not isEST && (tolerance < 0 || tolerance > 5) ) bomb_error("invalid tolerance");
-	if ((diff_cutoff<0) || (diff_cutoff>1)) bomb_error("invalid value for -s");
-	if (diff_cutoff_aa<0) bomb_error("invalid value for -S");
-	if( has2D ){
-		if ((diff_cutoff2<0) || (diff_cutoff2>1)) bomb_error("invalid value for -s2");
-		if (diff_cutoff_aa2<0) bomb_error("invalid value for -S2");
-          if (PE_mode) {
-            if (input2_pe.size()  == 0) bomb_error("no input file for R2 sequences for 2nd db in PE mode");
-          }
-	}
-	if (global_identity == 0) print = 1;
-	if (short_coverage < long_coverage) short_coverage = long_coverage;
-	if (short_control > long_control) short_control = long_control;
-	if ((global_identity == 0) && (short_coverage == 0.0) && (min_control == 0))
-		bomb_error("You are using local identity, but no -aS -aL -A option");
-	if (frag_size < 0) bomb_error("invalid fragment size");
-
-#if 0
-	if( useDistance ){
-		/* when required_aan becomes zero */
-		if( distance_thd * NAA >= 1 )
-			bomb_warning( "word length is too long for the distance cutoff" );
-	}else{
-		/* when required_aan becomes zero */
-		if( cluster_thd <= 1.0 - 1.0 / NAA )
-			bomb_warning( "word length is too long for the identity cutoff" );
-	}
-#endif
-
-	const char *message = "Your word length is %i, using %i may be faster!\n";
-	if ( not isEST && tolerance ) {
-		int i, clstr_idx = (int) (cluster_thd * 100) - naa_stat_start_percent;
-		int tcutoff = naa_stat[tolerance-1][clstr_idx][5-NAA];
-
-		if (tcutoff < 5 )
-			bomb_error("Too low cluster threshold for the word length.\n"
-					"Increase the threshold or the tolerance, or decrease the word length.");
-		for ( i=5; i>NAA; i--) {
-			if ( naa_stat[tolerance-1][clstr_idx][5-i] > 10 ) {
-				printf( message, NAA, i );
-				break;
-			}
-		}
-	} else if( isEST ) {
-		if      ( cluster_thd > 0.9  && NAA < 8 ) printf( message, NAA, 8 );
-		else if ( cluster_thd > 0.87 && NAA < 5 ) printf( message, NAA, 5 );
-		else if ( cluster_thd > 0.80 && NAA < 4 ) printf( message, NAA, 4 );
-		else if ( cluster_thd > 0.75 && NAA < 3 ) printf( message, NAA, 3 );
-	} else {
-		if      ( cluster_thd > 0.85 && NAA < 5 ) printf( message, NAA, 5 );
-		else if ( cluster_thd > 0.80 && NAA < 4 ) printf( message, NAA, 4 );
-		else if ( cluster_thd > 0.75 && NAA < 3 ) printf( message, NAA, 3 );
-	}
-
-	if ( (min_length + 1) < NAA ) bomb_error("Too short -l, redefine it");
-}
-void Options::Print()
-{
-	printf( "isEST = %i\n", isEST );
-	printf( "has2D = %i\n", has2D );
-	printf( "NAA = %i\n", NAA );
-	printf( "NAA_top_limit = %i\n", NAA_top_limit );
-	printf( "min_length = %i\n", min_length );
-	printf( "cluster_best = %i\n", cluster_best );
-	printf( "global_identity = %i\n", global_identity );
-	printf( "cluster_thd = %g\n", cluster_thd );
-	printf( "diff_cutoff = %g\n", diff_cutoff );
-	printf( "diff_cutoff_aa = %i\n", diff_cutoff_aa );
-	printf( "tolerance = %i\n", tolerance );
-	printf( "long_coverage = %g\n", long_coverage );
-	printf( "long_control = %i\n", long_control );
-	printf( "short_coverage = %g\n", short_coverage );
-	printf( "short_control = %i\n", short_control );
-	printf( "frag_size = %i\n", frag_size );
-	printf( "option_r = %i\n", option_r );
-	printf( "print = %i\n", print );
 }
 
 void bomb_error(const char *message)
@@ -522,7 +170,7 @@ int diag_test_aapn(int NAA1, char iseq2[], int len1, int len2, WorkingBuffer & b
 {
 	int i, i1, j, k;
 	int *pp;
-	int nall = len1+len2-1;
+	size_t nall = len1+len2-1;
 	Vector<int> & taap = buffer.taap;
 	Vector<INTs> & aap_begin = buffer.aap_begin;
 	Vector<INTs> & aap_list = buffer.aap_list;
@@ -617,12 +265,11 @@ int diag_test_aapn(int NAA1, char iseq2[], int len1, int len2, WorkingBuffer & b
 int diag_test_aapn_est(int NAA1, char iseq2[], int len1, int len2, WorkingBuffer & buffer, 
         int &best_sum, int band_width, int &band_left, int &band_center, int &band_right, int required_aa1)
 {
-	int i, i1, j, k;
 	int *pp, *pp2;
-	int nall = len1+len2-1;
+	size_t nall = len1+len2-1;
 	int NAA2 = NAA1 * NAA1;
 	int NAA3 = NAA2 * NAA1;
-	Vector<int> & taap = buffer.taap;
+	const Vector<int> & taap = buffer.taap;
 	Vector<INTs> & aap_begin = buffer.aap_begin;
 	Vector<INTs> & aap_list = buffer.aap_list;
 	Vector<int> & diag_score = buffer.diag_score;
@@ -631,13 +278,13 @@ int diag_test_aapn_est(int NAA1, char iseq2[], int len1, int len2, WorkingBuffer
 	if (nall > MAX_DIAG) bomb_error("in diag_test_aapn_est, MAX_DIAG reached");
 	pp = & diag_score[0];
 	pp2 = & diag_score2[0];
-	for (i=nall; i; i--, pp++, pp2++) *pp = *pp2 =0;
+	for (auto i=nall; i; i--, pp++, pp2++) *pp = *pp2 =0;
 
 	INTs *bip;
 	int c22, cpx;
 	int len22 = len2-3;
-	i1 = len1-1;
-	for (i=0; i<len22; i++,i1++,iseq2++) {
+	auto i1 = len1-1;
+	for (auto i=0; i<len22; i++,i1++,iseq2++) {
 		unsigned char c0 = iseq2[0];
 		unsigned char c1 = iseq2[1];
 		unsigned char c2 = iseq2[2];
@@ -645,8 +292,10 @@ int diag_test_aapn_est(int NAA1, char iseq2[], int len1, int len2, WorkingBuffer
 		if ((c0>=4) || (c1>=4) || (c2>=4) || (c3>=4)) continue; //skip N
 
 		c22 = c0*NAA3+ c1*NAA2 + c2*NAA1 + c3;
-		if ( (j=taap[c22]) == 0) continue;
-		cpx = 1 + (c0 != c1) + (c1 != c2) + (c2 != c3);
+		auto j=taap[c22];
+		if (j == 0)
+			continue;
+		cpx = 1 + int(c0 != c1) + int(c1 != c2) + (c2 != c3);
 		bip = & aap_list[ aap_begin[c22] ];     //    bi = aap_begin[c22];
 		for (; j; j--, bip++) { 
 			diag_score[i1 - *bip]++;
@@ -668,8 +317,9 @@ int diag_test_aapn_est(int NAA1, char iseq2[], int len1, int len2, WorkingBuffer
 	
 	//find the best band range
 	//  int band_b = required_aa1;
-	int band_b = required_aa1-1 >= 0 ? required_aa1-1:0;  // on dec 21 2001
-	int band_e = nall - band_b;
+	size_t band_b = required_aa1 >= 1 ? required_aa1 - 1 : 0;  // on dec 21 2001
+	assert(nall > band_b);
+	size_t band_e = nall - band_b;
 
 	if( options.is454 ){
 		band_b = len1 - band_width;
@@ -678,13 +328,13 @@ int diag_test_aapn_est(int NAA1, char iseq2[], int len1, int len2, WorkingBuffer
 		if( band_e > nall ) band_e = nall;
 	}
 
-	int band_m = ( band_b+band_width-1 < band_e ) ? band_b+band_width-1 : band_e;
+	auto  band_m = ( band_b+band_width-1 < band_e ) ? band_b+band_width-1 : band_e;
 	int best_score=0;
 	int best_score2=0;
 	// int max_diag = 0;
 	int max_diag2 = 0;
 	int imax_diag = 0;
-	for (i=band_b; i<=band_m; i++){
+	for (auto i=band_b; i<=band_m; i++){
 		best_score += diag_score[i];
 		best_score2 += diag_score2[i];
 		if( diag_score2[i] > max_diag2 ){
@@ -696,9 +346,10 @@ int diag_test_aapn_est(int NAA1, char iseq2[], int len1, int len2, WorkingBuffer
 	int from=band_b;
 	int end =band_m;
 	int score = best_score;  
-	int score2 = best_score2;  
+	int score2 = best_score2;
 
-	for (k=from, j=band_m+1; j<band_e; j++, k++) {
+	for (size_t k = from, j = band_m + 1; j < band_e; j++, k++)
+	{
 		score -= diag_score[k]; 
 		score += diag_score[j]; 
 		score2 -= diag_score2[k]; 
@@ -724,12 +375,12 @@ int diag_test_aapn_est(int NAA1, char iseq2[], int len1, int len2, WorkingBuffer
 	int mlen = imax_diag;
 	if( imax_diag > len1 ) mlen = nall - imax_diag;
 	int emax = int((1.0 - options.cluster_thd) * mlen) + 1;
-	for (j=from; j<imax_diag; j++) { // if aap pairs fail to open gap
+	for (auto j=from; j<imax_diag; j++) { // if aap pairs fail to open gap
 		if ( (imax_diag - j) > emax || diag_score[j] < 1 ) {
 			best_score -= diag_score[j]; from++;
 		} else break;
 	}
-	for (j=end; j>imax_diag; j--) { // if aap pairs fail to open gap
+	for (auto j=end; j>imax_diag; j--) { // if aap pairs fail to open gap
 		if ( (j - imax_diag) > emax || diag_score[j] < 1 ) {
 			best_score -= diag_score[j]; end--;
 		} else break;
@@ -752,510 +403,7 @@ int diag_test_aapn_est(int NAA1, char iseq2[], int len1, int len2, WorkingBuffer
 // END diag_test_aapn_est
 
 
-/*
-local alignment of two sequence within a diag band
-for band 0 means direction (0,0) -> (1,1)
-         1 means direction (0,1) -> (1,2)
-        -1 means direction (1,0) -> (2,1)
-added on 2006 11 13
-band 0                      XXXXXXXXXXXXXXXXXX               seq2, rep seq
-                            XXXXXXXXXXXXXXX                  seq1
-band 1                      XXXXXXXXXXXXXXXXXX               seq2, rep seq
-                             XXXXXXXXXXXXXXX                 seq1
-extreme right (+)           XXXXXXXXXXXXXXXXXX               seq2, rep seq
-    band = len2-1                            XXXXXXXXXXXXXXX seq1
-band-1                      XXXXXXXXXXXXXXXXXX               seq2, rep seq
-                           XXXXXXXXXXXXXXX                   seq1
-extreme left (-)            XXXXXXXXXXXXXXXXXX               seq2, rep seq
-              XXXXXXXXXXXXXXX   band = -(len1-1)             seq1
-iseq len are integer sequence and its length,
-mat is matrix, return ALN_PAIR class
-
-       band:  -101   seq2 len2 = 17
-                \\\1234567890123456
-              0  \xxxxxxxxxxxxxxxxx
-              1   xxxxxxxxxxxxxxxxx\ most right band = len2-1
-              2   xxxxxxxxxxxxxxxxx
-    seq1      3   xxxxxxxxxxxxxxxxx
-    len1 = 11 4   xxxxxxxxxxxxxxxxx
-              5   xxxxxxxxxxxxxxxxx
-              6   xxxxxxxxxxxxxxxxx
-              7   xxxxxxxxxxxxxxxxx
-              8   xxxxxxxxxxxxxxxxx
-              9   xxxxxxxxxxxxxxxxx
-              0   xxxxxxxxxxxxxxxxx
-                  \
-                   most left band = -(len1-1)
-
-*/
-
-int local_band_align( char iseq1[], char iseq2[], int len1, int len2, ScoreMatrix &mat, 
-		int &best_score, int &iden_no, int &alnln, float &dist, unsigned int *alninfo,
-		int band_left, int band_center, int band_right, WorkingBuffer & buffer)
-{
-	int i, j, k, j1;
-	// int jj;
-	// int kk;
-	// int iden_no1;
-	int64_t best_score1;
-	iden_no = 0;
-
-	if ( (band_right >= len2 ) ||
-			(band_left  <= -len1) ||
-			(band_left  > band_right) ) return FAILED_FUNC;
-
-	// allocate mem for score_mat[len1][len2] etc
-	int band_width = band_right - band_left + 1;
-	int band_width1 = band_width + 1;
-
-    // score_mat, back_mat [i][j]: i index of seqi (0 to len(seqi)-1), j index of band (0 to band_width-1)
-	MatrixInt64 & score_mat = buffer.score_mat;
-	MatrixInt   & back_mat = buffer.back_mat;
-
-	//printf( "%i  %i\n", band_right, band_left );
-
-	if( score_mat.size() <= len1 ){
-		VectorInt   row( band_width1, 0 );
-		VectorInt64 row2( band_width1, 0 );
-		while( score_mat.size() <= len1 ){
-			score_mat.Append( row2 );
-			back_mat.Append( row );
-		}
-	}
-	for(i=0; i<=len1; i++){
-		if( score_mat[i].Size() < band_width1 ) score_mat[i].Resize( band_width1 );
-		if( back_mat[i].Size() < band_width1 ) back_mat[i].Resize( band_width1 );
-	}
-
-	best_score = 0;
-	/* seq1 is query, seq2 is rep
-                  seq2    len2 = 17       seq2    len2 = 17    seq2    len2 = 17
-                  01234567890123456       01234567890123456    01234567890123456
-       0          xxxxxxxxxxxxxxxxx \\\\\\XXXxxxxxxxxxxxxxx    xXXXXXXXxxxxxxxxx
-       1     \\\\\Xxxxxxxxxxxxxxxxx  \\\\\Xxx\xxxxxxxxxxxxx    xx\xxxxx\xxxxxxxx
-       2      \\\\X\xxxxxxxxxxxxxxx   \\\\Xxxx\xxxxxxxxxxxx    xxx\xxxxx\xxxxxxx
-  seq1 3       \\\Xx\xxxxxxxxxxxxxx    \\\Xxxxx\xxxxxxxxxxx    xxxx\xxxxx\xxxxxx
-  len1 4        \\Xxx\xxxxxxxxxxxxx     \\Xxxxxx\xxxxxxxxxx    xxxxx\xxxxx\xxxxx
-  = 11 5         \Xxxx\xxxxxxxxxxxx      \Xxxxxxx\xxxxxxxxx    xxxxxx\xxxxx\xxxx
-       6          Xxxxx\xxxxxxxxxxx       Xxxxxxxx\xxxxxxxx    xxxxxxx\xxxxx\xxx
-       7          x\xxxx\xxxxxxxxxx       x\xxxxxxx\xxxxxxx    xxxxxxxx\xxxxx\xx
-       8          xx\xxxx\xxxxxxxxx       xx\xxxxxxx\xxxxxx    xxxxxxxxx\xxxxx\x
-       9          xxx\xxxx\xxxxxxxx       xxx\xxxxxxx\xxxxx    xxxxxxxxxx\xxxxx\
-       0          xxxx\xxxx\xxxxxxx       xxxx\xxxxxxx\xxxx    xxxxxxxxxxx\xxxxx
-                  band_left < 0 (-6)      band_left < 0 (-6)   band_left >=0 (1)
-                  band_right < 0 (-1)     band_right >=0 (2)   band_right >=0(7)
-                  band_width 6            band_width 9         band_width 7
-       init score_mat, and iden_mat (place with upper 'X')
-     */
-
-	if (band_left < 0) {  //set score to left border of the matrix within band
-		int tband = (band_right < 0) ? band_right : 0;
-		//for (k=band_left; k<tband; k++)
-		for (k=band_left; k<=tband; k++) { // fixed on 2006 11 14
-			i = -k;
-			j1 = k-band_left;
-			// penalty for leading gap opening = penalty for gap extension
-            // each of the left side query hunging residues give ext_gap (-1)
-			score_mat[i][j1] =  mat.ext_gap * i;
-			back_mat[i][j1] = DP_BACK_TOP;
-		}
-		back_mat[-tband][tband-band_left] = DP_BACK_NONE;
-	}
-
-	if (band_right >=0) { //set score to top border of the matrix within band
-		int tband = (band_left > 0) ? band_left : 0;
-		for (j=tband; j<=band_right; j++) {
-			j1 = j-band_left;
-			score_mat[0][j1] = mat.ext_gap * j;
-			back_mat[0][j1] = DP_BACK_LEFT;
-		}
-		back_mat[0][tband-band_left] = DP_BACK_NONE;
-	}
-
-	int gap_open[2] = { mat.gap, mat.ext_gap };
-	int max_diag = band_center - band_left;
-	int extra_score[4] = { 4, 3, 2, 1 };
-	for (i=1; i<=len1; i++) {
-		int J0 = 1 - band_left - i;
-		int J1 = len2 - band_left - i;
-		if( J0 < 0 ) J0 = 0;
-		if( J1 >= band_width ) J1 = band_width;
-		for (j1=J0; j1<=J1; j1++){
-			j = j1+i+band_left;
-
-			int ci = iseq1[i-1];
-			int cj = iseq2[j-1];
-			int sij = mat.matrix[ci][cj];
-			// int iden_ij = (ci == cj);
-			// int s1; int k0;
-			int back;
-
-			/* extra score according to the distance to the best diagonal */
-			int extra = extra_score[ abs(j1 - max_diag) & 3 ]; // max distance 3
-			sij += extra * (sij>0);
-
-			back = DP_BACK_LEFT_TOP;
-			best_score1 = score_mat[i-1][j1] + sij;
-			int gap0 = gap_open[ (i == len1) | (j == len2) ];
-			int gap = 0;
-			int64_t score;
-
-			if( j1 > 0 ){
-				gap = gap0;
-				if( back_mat[i][j1-1] == DP_BACK_LEFT ) gap = mat.ext_gap;
-				if( (score = score_mat[i][j1-1] + gap) > best_score1 ){
-					back = DP_BACK_LEFT;
-					best_score1 = score;
-				}
-			}
-			if(j1+1<band_width){
-				gap = gap0;
-				if( back_mat[i-1][j1+1] == DP_BACK_TOP ) gap = mat.ext_gap;
-				if( (score = score_mat[i-1][j1+1] + gap) > best_score1 ){
-					back = DP_BACK_TOP;
-					best_score1 = score;
-				}
-			}
-			score_mat[i][j1] = best_score1;
-			back_mat[i][j1]  = back;
-			//printf( "%2i(%2i) ", best_score1, iden_no1 );
-
-		}
-		//printf( "\n" );
-	}
-	i = j = 0;
-	if( len2 - band_left < len1 ){
-		i = len2 - band_left;
-		j = len2;
-	}else if( len1 + band_right < len2 ){
-		i = len1;
-		j = len1 + band_right;
-	}else{
-		i = len1;
-		j = len2;
-	}
-	j1 = j - i - band_left;
-	best_score = score_mat[i][j1];
-	best_score1 = score_mat[i][j1];
-
-// #if 1
-// 	const char *letters = "acgtnx";
-// 	const char *letters2 = "ACGTNX";
-// #else
-// 	const char *letters = "arndcqeghilkmfpstwyvbzx";
-// 	const char *letters2 = "ARNDCQEGHILKMFPSTWYVBZX";
-// #endif
-
-	int back = back_mat[i][j1];
-	int last = back;
-	int count = 0, count2 = 0, count3 = 0;
-	int match, begin1, begin2, end1, end2;
-	int gbegin1=0, gbegin2=0, gend1=0, gend2=0;
-	int64_t score, smin = best_score1, smax = best_score1 - 1;
-	int posmin, posmax, pos = 0;
-	int bl, dlen = 0, dcount = 0;
-	posmin = posmax = 0;
-	begin1 = begin2 = end1 = end2 = 0;
-
-#ifdef PRINT
-#define PRINT
-	printf( "%i %i\n", best_score, score_mat[i][j1] );
-	printf( "%i %i %i\n", band_left, band_center, band_right );
-	printf( "%i %i %i %i\n", i, j, j1, len2 );
-#endif
-#ifdef MAKEALIGN
-#define MAKEALIGN
-	char AA[ MAX_SEQ ], BB[ MAX_SEQ ];
-	int NN = 0;
-	int IA, IB;
-	for(IA=len1;IA>i;IA--){
-		AA[NN] = letters[ iseq1[IA-1] ];
-		BB[NN++] = '-';
-	}
-	for(IB=len2;IB>j;IB--){
-		AA[NN] = '-';
-		BB[NN++] = letters[ iseq2[IB-1] ];
-	}
-#endif
-
-	int masked = 0;
-	int indels = 0;
-	int max_indels = 0;
-	while( back != DP_BACK_NONE ){
-		switch( back ){
-		case DP_BACK_TOP  :
-#ifdef PRINT
-			printf( "%5i: %c %c %9i\n", pos, letters[ iseq1[i-1] ], '|', score_mat[i][j1] );
-#endif
-#ifdef MAKEALIGN
-			AA[NN] = letters[ iseq1[i-1] ];
-			BB[NN++] = '-';
-#endif
-			bl = (last != back) & (j != 1) & (j != len2);
-			dlen += bl;
-			dcount += bl;
-			score = score_mat[i][j1];
-			if( score < smin ){
-				count2 = 0;
-				smin = score;
-				posmin = pos - 1;
-				begin1 = i;
-				begin2 = j;
-			}
-			i -= 1;
-			j1 += 1;
-			break;
-		case DP_BACK_LEFT :
-#ifdef PRINT
-			printf( "%5i: %c %c %9i\n", pos, '|', letters[ iseq2[j-1] ], score_mat[i][j1] );
-#endif
-#ifdef MAKEALIGN
-			AA[NN] = '-';
-			BB[NN++] = letters[ iseq2[j-1] ];
-#endif
-			bl = (last != back) & (i != 1) & (i != len1);
-			dlen += bl;
-			dcount += bl;
-			score = score_mat[i][j1];
-			if( score < smin ){
-				count2 = 0;
-				smin = score;
-				posmin = pos - 1;
-				begin1 = i;
-				begin2 = j;
-			}
-			j1 -= 1;
-			j -= 1;
-			break;
-		case DP_BACK_LEFT_TOP :
-#ifdef PRINT
-			if( iseq1[i-1] == iseq2[j-1] ){
-				printf( "%5i: %c %c %9i\n", pos, letters2[ iseq1[i-1] ], letters2[ iseq2[j-1] ], score_mat[i][j1] );
-			}else{
-				printf( "%5i: %c %c %9i\n", pos, letters[ iseq1[i-1] ], letters[ iseq2[j-1] ], score_mat[i][j1] );
-			}
-#endif
-#ifdef MAKEALIGN
-			if( iseq1[i-1] == iseq2[j-1] ){
-				AA[NN] = letters2[ iseq1[i-1] ];
-				BB[NN++] = letters2[ iseq2[j-1] ];
-			}else{
-				AA[NN] = letters[ iseq1[i-1] ];
-				BB[NN++] = letters[ iseq2[j-1] ];
-			}
-#endif
-			if( alninfo && options.global_identity ){
-				if( i == 1 || j == 1 ){
-					gbegin1 = i-1;
-					gbegin2 = j-1;
-				}else if( i == len1 || j == len2 ){
-					gend1 = i-1;
-					gend2 = j-1;
-				}
-			}
-			score = score_mat[i][j1];
-			i -= 1;
-			j -= 1;
-			match = iseq1[i] == iseq2[j];
-			if( score > smax ){
-				count = 0;
-				smax = score;
-				posmax = pos;
-				end1 = i;
-				end2 = j;
-			}
-			if( options.isEST && (iseq1[i] > 4 || iseq2[j] > 4) ){
-				masked += 1;
-			}else{
-				dlen += 1;
-				dcount += ! match;
-				count += match;
-				count2 += match;
-				count3 += match;
-			}
-			if( score < smin ){
-				int mm = match == 0;
-				count2 = 0;
-				smin = score;
-				posmin = pos - mm;
-				begin1 = i + mm;
-				begin2 = j + mm;
-			}
-			break;
-		default : printf( "%i\n", back ); break;
-		}
-		if( options.is454 ){
-			if( back == DP_BACK_LEFT_TOP ){
-				if( indels > max_indels ) max_indels = indels;
-				indels = 0;
-			}else{
-				if( last == DP_BACK_LEFT_TOP ){
-					indels = 1;
-				}else if( indels ){
-					indels += 1;
-				}
-			}
-		}
-		pos += 1;
-		last = back;
-		back = back_mat[i][j1];
-	}
-	if( options.is454 and max_indels > options.max_indel ) return FAILED_FUNC;
-	iden_no = options.global_identity ? count3 : count - count2;
-	alnln = posmin - posmax + 1 - masked;
-	dist = dcount/(float)dlen;
-	//dist = - 0.75 * log( 1.0 - dist * 4.0 / 3.0 );
-	int umtail1 = len1 - 1 - end1;
-	int umtail2 = len2 - 1 - end2;
-	int umhead = begin1 < begin2 ? begin1 : begin2;
-	int umtail = umtail1 < umtail2 ? umtail1 : umtail2;
-	int umlen = umhead + umtail;
-	if( umlen > options.unmatch_len ) return FAILED_FUNC;
-	if( umlen > len1 * options.short_unmatch_per ) return FAILED_FUNC;
-	if( umlen > len2 * options.long_unmatch_per ) return FAILED_FUNC;
-	if( alninfo ){
-		alninfo[0] = begin1;
-		alninfo[1] = end1;
-		alninfo[2] = begin2;
-		alninfo[3] = end2;
-		alninfo[4] = masked;
-		if( options.global_identity ){
-			alninfo[0] = gbegin1;
-			alninfo[1] = gend1;
-			alninfo[2] = gbegin2;
-			alninfo[3] = gend2;
-		}
-	}
-#ifdef PRINT
-	printf( "%6i %6i:  %4i %4i %4i %4i\n", alnln, iden_no, begin1, end1, begin2, end2 );
-	printf( "%6i %6i:  %4i %4i\n", posmin, posmax, posmin - posmax, count - count2 );
-	printf( "smin = %9i, smax = %9i\n", smin, smax );
-	printf( "dlen = %5i, dcount = %5i, dist = %.3f\n", dlen, dcount, dcount/(float)dlen );
-#endif
-#ifdef MAKEALIGN
-	float identity = iden_no / (float)( options.global_identity ? (len1 - masked) : alnln);
-	if( identity < options.cluster_thd ) return OK_FUNC;
-	while(i--){
-		AA[NN] = letters[ iseq1[i-1] ];
-		BB[NN++] = '-';
-	}
-	while(j--){
-		AA[NN] = '-';
-		BB[NN++] = letters[ iseq2[j-1] ];
-	}
-	AA[NN] = '\0';
-	BB[NN] = '\0';
-	for(i=0; i<NN/2; i++){
-		char aa = AA[i], bb = BB[i];
-		AA[i] = AA[NN-i-1];
-		BB[i] = BB[NN-i-1];
-		AA[NN-i-1] = aa;
-		BB[NN-i-1] = bb;
-	}
-	static int fcount = 0; 
-	fcount += 1;
-	FILE *fout = fopen( "alignments.txt", "a" );
-	if( fout == NULL ){
-		if( fcount <= 1 ) printf( "alignment files open failed\n" );
-		return OK_FUNC;
-	}
-	fprintf( fout, "\n\n######################################################\n" );
-	fprintf( fout, "# length X = %i\n", len2 );
-	fprintf( fout, "# length Y = %i\n", len1 );
-	fprintf( fout, "# best align X: %i-%i\n", begin2+1, end2+1 );
-	fprintf( fout, "# best align Y: %i-%i\n", begin1+1, end1+1 );
-	if( alninfo ){
-		fprintf( fout, "# align X: %i-%i\n", alninfo[2]+1, alninfo[3]+1 );
-		fprintf( fout, "# align Y: %i-%i\n", alninfo[0]+1, alninfo[1]+1 );
-	}
-	fprintf( fout, "# alignment length: %i\n", alnln );
-	fprintf( fout, "# identity count: %i\n", iden_no );
-	fprintf( fout, "# identity: %g\n", identity );
-	fprintf( fout, "# distance: %g\n", dist );
-	if( options.is454 ) fprintf( fout, "# max indel: %i\n", max_indels );
-#if 0
-	fprintf( fout, "%i %s\n", seq1->index, AA );
-	fprintf( fout, "%i %s\n", seq2->index, BB );
-#else
-	bool printaa = true;
-	IB = IA = 0;
-	fprintf( fout, "\n\nX " );
-	while( IA < NN ){
-		if( printaa ){
-			fprintf( fout, "%c", BB[IB] );
-			IB += 1;
-			if( IB % 75 ==0 or IB == NN ) printaa = false, fprintf( fout, "\nY " );
-		}else{
-			fprintf( fout, "%c", AA[IA] );
-			IA += 1;
-			if( IA % 75 ==0 ) printaa = true, fprintf( fout, "\n\nX " );
-		}
-	}
-#endif
-	fclose( fout );
-#endif
-
-	return OK_FUNC;
-} // END int local_band_align
-
-
-
-void setaa_to_na()
-{
-	int i;
-	for (i=0; i<26; i++) aa2idx[i]   = na2idx[i];
-} // END void setaa_to_na
-
-
 /////////////////
-ScoreMatrix::ScoreMatrix()
-{
-	init();
-}
-
-void ScoreMatrix::init() 
-{
-	set_gap( -11, -1 );
-	set_matrix( BLOSUM62 );
-}
-
-void ScoreMatrix::set_gap(int gap1, int ext_gap1)
-{
-	gap = MAX_SEQ * gap1;
-	ext_gap = MAX_SEQ * ext_gap1;
-}
-
-void ScoreMatrix::set_matrix(int *mat1)
-{
-	int i, j, k;
-	k = 0;
-	for ( i=0; i<MAX_AA; i++)
-		for ( j=0; j<=i; j++)
-			matrix[j][i] = matrix[i][j] = MAX_SEQ * mat1[ k++ ];
-}
-
-void ScoreMatrix::set_to_na()
-{
-	set_gap( -6, -1 );
-	set_matrix( BLOSUM62_na );
-}
-// Only for est
-void ScoreMatrix::set_match( int score )
-{
-	int i;
-	for ( i=0; i<5; i++) matrix[i][i] = MAX_SEQ * score;
-	//matrix[3][4] = matrix[4][3] = MAX_SEQ * score;
-}
-// Only for est
-void ScoreMatrix::set_mismatch( int score )
-{
-	int i, j;
-	for ( i=0; i<MAX_AA; i++)
-		for ( j=0; j<i; j++)
-			matrix[j][i] = matrix[i][j] = MAX_SEQ * score;
-	matrix[3][4] = matrix[4][3] = MAX_SEQ;
-}
-
 WordTable::WordTable( int naa, int naan )
 {
 	NAA      = 0;
@@ -1515,7 +663,7 @@ Sequence::Sequence( const Sequence & other )
 // XXXXXXABC     YYYYYYLMN =====> Merge into
 // >R12
 // NMLYYYYYYXXXXXXABC
-Sequence::Sequence( const Sequence & other, const Sequence & other2, int mode )
+Sequence::Sequence( const Sequence & other, const Sequence & other2, size_t mode )
 {
 	if (mode != 1) bomb_error("unknown mode");
 
@@ -1577,7 +725,7 @@ void Sequence::operator+=( const char *s )
 	Reserve( m + n );
 	memcpy( data+m, s, n );
 }
-void Sequence::Resize( int n )
+void Sequence::Resize( size_t n )
 {
 	int m = size < n ? size : n;
 	size = n;
@@ -1593,7 +741,7 @@ void Sequence::Resize( int n )
 		if( size ) data[size] = 0;
 	}
 }
-void Sequence::Reserve( int n )
+void Sequence::Reserve( size_t n )
 {
 	int m = size < n ? size : n;
 	size = n;
@@ -1609,15 +757,14 @@ void Sequence::Reserve( int n )
 	}
 	if( size ) data[size] = 0;
 }
-void Sequence::trim(int trim_len) {
+void Sequence::trim(size_t trim_len) {
     if (trim_len >= size) return;
     size = trim_len;
     if (size) data[size]=0;
 }
 void Sequence::ConvertBases()
 {
-	int i;
-	for(i=0; i<size; i++) data[i] = aa2idx[data[i] - 'A'];
+	for(size_t i=0; i<size; i++) data[i] = aa2idx[data[i] - 'A'];
 }
 
 void Sequence::Swap( Sequence & other )
@@ -1626,16 +773,17 @@ void Sequence::Swap( Sequence & other )
 }
 int Sequence::Format()
 {
-	int i, j=0, m = 0;
+	size_t j = 0;
+	size_t m = 0;
 	while( size && isspace( data[size-1] ) ) size --;
 	if( size && data[size-1] == '*' ) size --;
 	if( size ) data[size] = 0;
-	for (i=0; i<size; i++){
+	for (size_t i=0; i<size; i++){
 		char ch = data[i];
 		m += ! (isalpha( ch ) | isspace( ch ));
 	}
 	if( m ) return m;
-	for (i=0; i<size; i++){
+	for (size_t i=0; i<size; i++){
 		char ch = data[i];
 		if ( isalpha( ch ) ) data[j++] = toupper( ch );
 	}
@@ -1661,16 +809,15 @@ void Sequence::SwapOut()
 		data = NULL;
 	}
 }
-void Sequence::PrintInfo( int id, FILE *fout, const Options & options, char *buf )
+void Sequence::PrintInfo( size_t id, FILE *fout, char *buf )
 {
-	const char *tag = options.isEST ? "nt" : "aa";
+	const auto& tag = options.isEST ? "nt" : "aa";
 	bool print = options.print != 0;
 	bool strand = options.isEST;
-	fprintf( fout, "%i\t%i%s, >%s...", id, size, tag, identifier+1 );
+	std::cout << id << "\t" << size << tag << ", >" << (identifier + 1) << "...";
 	if( identity ){
-		int *c = coverage;
 		fprintf( fout, " at " );
-		if (print) fprintf( fout, "%i:%i:%i:%i/", c[0], c[1], c[2], c[3] );
+		if (print) fprintf( fout, "%zu:%zu:%zu:%zu/", coverage[0], coverage[1], coverage[2], coverage[3] );
 		if (strand) fprintf( fout, "%c/", (state & IS_MINUS_STRAND) ? '-' : '+' );
 		fprintf( fout, "%.2f%%", identity*100 );
 		if( options.useDistance ) fprintf( fout, "/%.2f%%", distance*100 );
@@ -1686,15 +833,15 @@ void Sequence::PrintInfo( int id, FILE *fout, const Options & options, char *buf
 // change des_begin, des_length, des_length2, dat_length => des_begin, tot_length
 // where des_begin is the FILE pointer of sequence record start
 //       tot_length is the total bytes of sequence record 
-void SequenceDB::Readgz( const char *file, const Options & options )
+void SequenceDB::Readgz( string file )
 {
 #ifdef WITH_ZLIB
     Sequence one;
     Sequence des;
-    gzFile fin = gzopen(file, "r");
+    auto fin = gzopen(file.c_str(), "r");
     char *buffer = NULL;
     char *res = NULL;
-    int option_l = options.min_length;
+    auto option_l = options.min_length;
     if( fin == NULL ) bomb_error( "Failed to open the database file" );
     Clear();
     buffer = new char[ MAX_LINE_SIZE+1 ];
@@ -1725,7 +872,7 @@ void SequenceDB::Readgz( const char *file, const Options & options )
         }else if (buffer[0] == '>' || buffer[0] == '@' || (res==NULL && one.size)) {
             if ( one.size ) { // write previous record
                 if( one.identifier == NULL || one.Format() ){
-                    printf( "Warning: from file \"%s\",\n", file );
+                    printf( "Warning: from file \"%s\",\n", file.c_str() );
                     printf( "Discarding invalid sequence or sequence without identifier and description!\n\n" );
                     if( one.identifier ) printf( "%s\n", one.identifier );
                     printf( "%s\n", one.data );
@@ -1754,7 +901,7 @@ void SequenceDB::Readgz( const char *file, const Options & options )
             one.des_begin = offset - len;
             one.tot_length += len;              // count first line
 
-            int i = 0;
+            size_t i = 0;
             if( des.data[i] == '>' || des.data[i] == '@' || des.data[i] == '+' ) i += 1;
             if( des.data[i] == ' ' or des.data[i] == '\t' ) i += 1;
             if( options.des_len and options.des_len < des.size ) des.size = options.des_len;
@@ -1780,20 +927,19 @@ void SequenceDB::Readgz( const char *file, const Options & options )
 // change des_begin, des_length, des_length2, dat_length => des_begin, tot_length
 // where des_begin is the FILE pointer of sequence record start
 //       tot_length is the total bytes of sequence record 
-void SequenceDB::Read( const char *file, const Options & options )
+void SequenceDB::Read( const char *sfile )
 {
-    int f_len = strlen(file);
-    if (strcmp(file + f_len - 3, ".gz") == 0 ) {
-        Readgz(file, options);
+    const string file{sfile};
+    if (file.ends_with(".gz")) {
+        Readgz(file);
         return;
     }
 
     Sequence one;
     Sequence des;
-    FILE *fin = fopen( file, "rb" );
+    FILE *fin = fopen( file.c_str(), "rb" );
     char *buffer = NULL;
     char *res = NULL;
-    int option_l = options.min_length;
     if( fin == NULL ) bomb_error( "Failed to open the database file" );
     Clear();
     buffer = new char[ MAX_LINE_SIZE+1 ];
@@ -1824,14 +970,14 @@ void SequenceDB::Read( const char *file, const Options & options )
         }else if (buffer[0] == '>' || buffer[0] == '@' || (res==NULL && one.size)) {
             if ( one.size ) { // write previous record
                 if( one.identifier == NULL || one.Format() ){
-                    printf( "Warning: from file \"%s\",\n", file );
+                    cout << "Warning: from file \"" << file << "\"," << endl;
                     printf( "Discarding invalid sequence or sequence without identifier and description!\n\n" );
-                    if( one.identifier ) printf( "%s\n", one.identifier );
-                    printf( "%s\n", one.data );
+                    if( one.identifier ) cout << one.identifier << endl;
+                    cout << one.data << endl;
                     one.size = 0;
                 }
                 one.index = sequences.size();
-                if( one.size > option_l ) {
+                if( one.size > options.min_length ) {
                     if (options.trim_len    > 0) one.trim(options.trim_len);
                     sequences.Append( new Sequence( one ) ); 
                 }
@@ -1853,7 +999,7 @@ void SequenceDB::Read( const char *file, const Options & options )
             one.des_begin = offset - len;
             one.tot_length += len;              // count first line
 
-            int i = 0;
+            size_t i = 0;
             if( des.data[i] == '>' || des.data[i] == '@' || des.data[i] == '+' ) i += 1;
             if( des.data[i] == ' ' or des.data[i] == '\t' ) i += 1;
             if( options.des_len and options.des_len < des.size ) des.size = options.des_len;
@@ -1879,18 +1025,18 @@ void SequenceDB::Read( const char *file, const Options & options )
 
 // by liwz gzip version 2019-02
 // PE reads liwz, disable swap option
-void SequenceDB::Readgz( const char *file, const char *file2, const Options & options )
+void SequenceDB::Readgz(string file, string file2 )
 {
 #ifdef WITH_ZLIB
     Sequence one, two;
     Sequence des;
-    gzFile fin = gzopen(file, "r");
-    gzFile fin2= gzopen(file2,"r");
+    gzFile fin = gzopen(file.c_str(), "r");
+    gzFile fin2= gzopen(file2.c_str(),"r");
     char *buffer = NULL;
     char *buffer2= NULL;
     char *res = NULL;
     char *res2= NULL;
-    int option_l = options.min_length;
+    size_t option_l = options.min_length;
     if( fin == NULL ) bomb_error( "Failed to open the database file" );
     if( fin2== NULL ) bomb_error( "Failed to open the database file" );
     Clear();
@@ -1953,14 +1099,14 @@ void SequenceDB::Readgz( const char *file, const char *file2, const Options & op
         }else if (buffer[0] == '>' || buffer[0] == '@' || (res==NULL && one.size)) {
             if ( one.size && two.size ) { // write previous record
                 if( one.identifier == NULL || one.Format() ){
-                    printf( "Warning: from file \"%s\",\n", file );
+                    printf( "Warning: from file \"%s\",\n", file.c_str() );
                     printf( "Discarding invalid sequence or sequence without identifier and description!\n\n" );
                     if( one.identifier ) printf( "%s\n", one.identifier );
                     printf( "%s\n", one.data );
                     one.size=0; two.size=0;
                 }
                 if( two.identifier == NULL || two.Format() ){
-                    printf( "Warning: from file \"%s\",\n", file2 );
+                    printf( "Warning: from file \"%s\",\n", file2.c_str() );
                     printf( "Discarding invalid sequence or sequence without identifier and description!\n\n" );
                     if( two.identifier ) printf( "%s\n", two.identifier );
                     printf( "%s\n", two.data );
@@ -1991,7 +1137,7 @@ void SequenceDB::Readgz( const char *file, const char *file2, const Options & op
             one.des_begin = offset - len; // offset of ">" or "@" 
             one.tot_length += len;              // count first line
 
-            int i = 0;
+            size_t i = 0;
             if( des.data[i] == '>' || des.data[i] == '@' || des.data[i] == '+' ) i += 1;
             if( des.data[i] == ' ' or des.data[i] == '\t' ) i += 1;
             if( options.des_len and options.des_len < des.size ) des.size = options.des_len;
@@ -2032,13 +1178,13 @@ void SequenceDB::Readgz( const char *file, const char *file2, const Options & op
 }
 
 // PE reads liwz, disable swap option
-void SequenceDB::Read( const char *file, const char *file2, const Options & options )
+void SequenceDB::Read( const char *file, const char *file2 )
 {
     int f_len = strlen(file);
     int f_len2= strlen(file2);
     if (strcmp(file + f_len - 3, ".gz") == 0 ) {
         if ( strcmp(file2 + f_len2 - 3, ".gz") ) bomb_error( "Both input files need to be in .gz format" );
-        Readgz(file, file2, options);
+        Readgz(file, file2);
         return;
     }
 
@@ -2050,7 +1196,7 @@ void SequenceDB::Read( const char *file, const char *file2, const Options & opti
     char *buffer2= NULL;
     char *res = NULL;
     char *res2= NULL;
-    int option_l = options.min_length;
+    size_t option_l = options.min_length;
     if( fin == NULL ) bomb_error( "Failed to open the database file" );
     if( fin2== NULL ) bomb_error( "Failed to open the database file" );
     Clear();
@@ -2137,8 +1283,8 @@ void SequenceDB::Read( const char *file, const char *file2, const Options & opti
             one.size = 0;
             one.tot_length = 0;
 
-            int len = strlen( buffer );
-            int len2 = len;
+            size_t len = strlen( buffer );
+            size_t len2 = len;
             des.size = 0;
             des += buffer;
             while( len2 && buffer[len2-1] != '\n' ){
@@ -2151,7 +1297,7 @@ void SequenceDB::Read( const char *file, const char *file2, const Options & opti
             one.des_begin = offset - len; // offset of ">" or "@" 
             one.tot_length += len;              // count first line
 
-            int i = 0;
+            size_t i = 0;
             if( des.data[i] == '>' || des.data[i] == '@' || des.data[i] == '+' ) i += 1;
             if( des.data[i] == ' ' or des.data[i] == '\t' ) i += 1;
             if( options.des_len and options.des_len < des.size ) des.size = options.des_len;
@@ -2299,7 +1445,7 @@ void SequenceDB::SortDivide( Options & options, bool sort )
 	}
 }// END sort_seqs_divide_segs
 
-void SequenceDB::DivideSave( const char *db, const char *newdb, int n, const Options & options )
+void SequenceDB::DivideSave( const char *db, const char *newdb, int n )
 {
 	if( n == 0 or sequences.size() ==0 ) return;
 
@@ -2345,7 +1491,7 @@ void SequenceDB::DivideSave( const char *db, const char *newdb, int n, const Opt
 }
 
 // input db is gzipped
-void SequenceDB::WriteClustersgz( const char *db, const char *newdb, const Options & options )
+void SequenceDB::WriteClustersgz( const char *db, const char *newdb )
 {
 #ifdef WITH_ZLIB
     gzFile fin = gzopen(db, "r");
@@ -2382,11 +1528,11 @@ void SequenceDB::WriteClustersgz( const char *db, const char *newdb, const Optio
 
 }
 
-void SequenceDB::WriteClusters( const char *db, const char *newdb, const Options & options )
+void SequenceDB::WriteClusters( const char *db, const char *newdb )
 {
     int f_len = strlen(db);
     if (strcmp(db + f_len - 3, ".gz") == 0 ) {
-        WriteClustersgz(db, newdb, options);
+        WriteClustersgz(db, newdb);
         return;
     }
 
@@ -2423,7 +1569,7 @@ void SequenceDB::WriteClusters( const char *db, const char *newdb, const Options
 
 // input db is gzipped
 // liwz PE output
-void SequenceDB::WriteClustersgz( const char *db, const char *db_pe, const char *newdb, const char *newdb_pe, const Options & options )
+void SequenceDB::WriteClustersgz( const char *db, const char *db_pe, const char *newdb, const char *newdb_pe )
 {
 #ifdef WITH_ZLIB
     gzFile fin    = gzopen(db,    "r");
@@ -2506,11 +1652,11 @@ void SequenceDB::WriteClustersgz( const char *db, const char *db_pe, const char 
 
 
 // liwz PE output
-void SequenceDB::WriteClusters( const char *db, const char *db_pe, const char *newdb, const char *newdb_pe, const Options & options )
+void SequenceDB::WriteClusters( const char *db, const char *db_pe, const char *newdb, const char *newdb_pe )
 {
     int f_len = strlen(db); 
     if (strcmp(db + f_len - 3, ".gz") == 0 ) {
-        WriteClustersgz(db, db_pe, newdb, newdb_pe, options);
+        WriteClustersgz(db, db_pe, newdb, newdb_pe);
         return;
     }
 
@@ -2605,7 +1751,7 @@ void SequenceDB::WriteExtra1D( const Options & options )
 		fout = fopen( db_clstr_bak.c_str(), "w+" );
 		for (i=0; i<N; i++) {
 			Sequence *seq = sequences[ sorting[i] & 0xffffffff ];
-			seq->PrintInfo( seq->cluster_id, fout, options, buf );
+			seq->PrintInfo( seq->cluster_id, fout, buf );
 		}
 		fclose( fout );
 	}
@@ -2635,21 +1781,21 @@ void SequenceDB::WriteExtra1D( const Options & options )
                 i0 = clstr_idx1[i];
 		fprintf( fout, ">Cluster %i\n", i );
 		for (k=0; k<(int)clusters[i0].size(); k++)
-			sequences[ clusters[i0][k] ]->PrintInfo( k, fout, options, buf );
+			sequences[ clusters[i0][k] ]->PrintInfo( k, fout, buf );
 	    }   
         }
         else {
   	    for (i=0; i<M; i++) {
 		fprintf( fout, ">Cluster %i\n", i );
 		for (k=0; k<(int)clusters[i].size(); k++)
-			sequences[ clusters[i][k] ]->PrintInfo( k, fout, options, buf );
+			sequences[ clusters[i][k] ]->PrintInfo( k, fout, buf );
 	    }   
 
         }
 
 	delete []buf;
 }
-void SequenceDB::WriteExtra2D( SequenceDB & other, const Options & options )
+void SequenceDB::WriteExtra2D( SequenceDB & other)
 {
 	string db_clstr = options.output + ".clstr";
 	string db_clstr_bak = options.output + ".bak.clstr";
@@ -2665,11 +1811,11 @@ void SequenceDB::WriteExtra2D( SequenceDB & other, const Options & options )
 		fout = fopen( db_clstr_bak.c_str(), "w+" );
 		for (i=0; i<N; i++) {
 			Sequence *seq = other.sequences[ sorting[i] & 0xffffffff ];
-			seq->PrintInfo( seq->cluster_id, fout, options, buf );
+			seq->PrintInfo( seq->cluster_id, fout, buf );
 		}
 		for (i=0; i<N2; i++) {
 			Sequence *seq = sequences[i];
-			if( seq->state & IS_REDUNDANT ) seq->PrintInfo( seq->cluster_id, fout, options, buf );
+			if( seq->state & IS_REDUNDANT ) seq->PrintInfo( seq->cluster_id, fout, buf );
 		}
 		fclose( fout );
 	}
@@ -2685,13 +1831,13 @@ void SequenceDB::WriteExtra2D( SequenceDB & other, const Options & options )
 	for (i=0; i<N; i++) {
 		Sequence *seq = other.sequences[ i ];
 		fprintf( fout, ">Cluster %i\n", i );
-		seq->PrintInfo( 0, fout, options, buf );
+		seq->PrintInfo( 0, fout, buf );
 		for (k=0; k<(int)clusters[i].size(); k++)
-			sequences[ clusters[i][k] ]->PrintInfo( k+1, fout, options, buf );
+			sequences[ clusters[i][k] ]->PrintInfo( k+1, fout, buf );
 	}
 	delete []buf;
 }
-void WorkingParam::ControlShortCoverage( int len, const Options & options )
+void WorkingParam::ControlShortCoverage( int len)
 {
 	len_eff = len;
 	aln_cover_flag = 0;
@@ -2703,7 +1849,7 @@ void WorkingParam::ControlShortCoverage( int len, const Options & options )
 	}
 	if (options.global_identity == 0) len_eff = min_aln_lenS; //global_identity==0
 }
-void WorkingParam::ControlLongCoverage( int len2, const Options & options )
+void WorkingParam::ControlLongCoverage( int len2)
 {
 	if (aln_cover_flag) {
 		min_aln_lenL = (int) (double(len2) * options.long_coverage);
@@ -2725,7 +1871,7 @@ int upper_bound_length_rep(int len, double opt_s, int opt_S, double opt_aL, int 
 
 	return len_upper_bound;
 } // END upper_bound_length_rep
-int upper_bound_length_rep(int len, const Options & options )
+int upper_bound_length_rep(int len)
 {
 	double opt_s = options.diff_cutoff;
 	int    opt_S = options.diff_cutoff_aa;
@@ -2769,7 +1915,7 @@ void update_aax_cutoff(double &aa1_cutoff, double &aa2_cutoff, double &aan_cutof
 	return;  
 } // END update_aax_cutoff
 
-void WorkingParam::ComputeRequiredBases( int NAA, int ss, const Options & option )
+void WorkingParam::ComputeRequiredBases( int NAA, int ss)
 {
 	// d: distance, fraction of errors;
 	// e: number of errors;
@@ -2873,51 +2019,49 @@ int WorkingBuffer::EncodeWords( Sequence *seq, int NAA, bool est )
 }
 void WorkingBuffer::ComputeAAP( const char *seqi, int size )
 {
-	int len1 = size - 1;
-	int sk, j1, mm, c22;
-	for (sk=0; sk<NAA2; sk++) taap[sk] = 0;
-	for (j1=0; j1<len1; j1++) {
-		c22= seqi[j1]*NAA1 + seqi[j1+1];
+	size_t len1 = size - 1;
+	for (size_t sk=0; sk<NAA2; sk++) taap[sk] = 0;
+	for (size_t j1=0; j1<len1; j1++) {
+		size_t c22 = seqi[j1]*NAA1 + seqi[j1+1];
 		taap[c22]++;
 	}
-	for (sk=0,mm=0; sk<NAA2; sk++) {
+	for (size_t sk=0,mm=0; sk<NAA2; sk++) {
 		aap_begin[sk] = mm; mm+=taap[sk]; taap[sk] = 0;
 	}
-	for (j1=0; j1<len1; j1++) {
-		c22= seqi[j1]*NAA1 + seqi[j1+1];
+	for (size_t j1=0; j1<len1; j1++) {
+		size_t c22= seqi[j1]*NAA1 + seqi[j1+1];
 		aap_list[aap_begin[c22]+taap[c22]++] =j1;
 	}
 }
 void WorkingBuffer::ComputeAAP2( const char *seqi, int size )
 {
-	int len1 = size - 3;
-	int sk, j1, mm, c22;
-	for (sk=0; sk<NAA4; sk++) taap[sk] = 0;
-	for (j1=0; j1<len1; j1++) {
+	size_t len1 = size - 3;
+	for (size_t sk=0; sk<NAA4; sk++) taap[sk] = 0;
+	for (size_t j1=0; j1<len1; j1++) {
 		if ((seqi[j1]>=4) || (seqi[j1+1]>=4) || (seqi[j1+2]>=4) || (seqi[j1+3]>=4)) continue; //skip N
-		c22 = seqi[j1]*NAA3 + seqi[j1+1]*NAA2 + seqi[j1+2]*NAA1 + seqi[j1+3];
+		size_t c22 = seqi[j1]*NAA3 + seqi[j1+1]*NAA2 + seqi[j1+2]*NAA1 + seqi[j1+3];
 		taap[c22]++;
 	}
-	for (sk=0,mm=0; sk<NAA4; sk++) {
+	for (size_t sk=0, mm=0; sk<NAA4; sk++) {
 		aap_begin[sk] = mm;  mm += taap[sk];  taap[sk] = 0;
 	}
-	for (j1=0; j1<len1; j1++) {
+	for (size_t j1=0; j1<len1; j1++) {
 		if ((seqi[j1]>=4) || (seqi[j1+1]>=4) || (seqi[j1+2]>=4) || (seqi[j1+3]>=4)) continue; //skip N
-		c22 = seqi[j1]*NAA3 + seqi[j1+1]*NAA2 + seqi[j1+2]*NAA1 + seqi[j1+3];
+		size_t c22 = seqi[j1]*NAA3 + seqi[j1+1]*NAA2 + seqi[j1+2]*NAA1 + seqi[j1+3];
 		aap_list[aap_begin[c22]+taap[c22]++] =j1;
 	}
 }
 
 void SequenceDB::ClusterOne( Sequence *seq, int id, WordTable & table,
-		WorkingParam & param, WorkingBuffer & buffer, const Options & options )
+		WorkingParam & param, WorkingBuffer & buffer)
 {
 	if (seq->state & IS_REDUNDANT) return;
 	int frag_size = options.frag_size;
 	int NAA = options.NAA;
 	int len = seq->size;
-	int len_bound = upper_bound_length_rep(len, options);
+	int len_bound = upper_bound_length_rep(len);
 	param.len_upper_bound = len_bound;
-	int flag = CheckOne( seq, table, param, buffer, options );
+	int flag = CheckOne( seq, table, param, buffer );
 
 	if( flag == 0 ){
 		if ((seq->identity>0) && (options.cluster_best)) {
@@ -2936,7 +2080,7 @@ void SequenceDB::ClusterOne( Sequence *seq, int id, WordTable & table,
 				table.AddWordCountsFrag( aan_no, buffer.word_encodes_backup, 
 						buffer.word_encodes_no, frg1, frag_size );
 			}else{
-				table.AddWordCounts(aan_no, buffer.word_encodes, buffer.word_encodes_no, table.sequences.size(), options.isEST);
+				table.AddWordCounts(aan_no, buffer.word_encodes, buffer.word_encodes_no, table.sequences.size().isEST);
 			}
 			table.sequences.Append( seq );
 			if( frag_size ){
@@ -2954,7 +2098,7 @@ void SequenceDB::ClusterOne( Sequence *seq, int id, WordTable & table,
 }
 
 
-size_t SequenceDB::MinimalMemory( int frag_no, int bsize, int T, const Options & options, size_t extra )
+size_t SequenceDB::MinimalMemory( int frag_no, int bsize, int T, size_t extra )
 {
 	int N = sequences.size();
 	int F = frag_no < MAX_TABLE_SEQ ? frag_no : MAX_TABLE_SEQ;
@@ -2991,7 +2135,7 @@ size_t SequenceDB::MinimalMemory( int frag_no, int bsize, int T, const Options &
 	}
 	return mem_need;
 }
-size_t MemoryLimit( size_t mem_need, const Options & options )
+size_t MemoryLimit( size_t mem_need )
 {
 	size_t mem_limit = (options.max_memory - mem_need) / sizeof(IndexCount);
 
@@ -3004,32 +2148,7 @@ size_t MemoryLimit( size_t mem_need, const Options & options )
 	//printf( "Max number of word counting entries: %zu\n\n", mem_limit );
 	return mem_limit;
 }
-void Options::ComputeTableLimits( int min_len, int max_len, int typical_len, size_t mem_need )
-{
-//liwz Fri Jan 15 15:44:47 PST 2016
-//T=1 scale=1
-//T=2 scale=0.6035
-//T=4 scale=0.375
-//T=8 scale=0.2392
-//T=16 scale=0.1562
-//T=32 scale=0.104
-//T=64 scale=0.0703
-
-	double scale = 0.5/threads + 0.5/sqrt(threads);
-	max_sequences = (size_t)(scale * MAX_TABLE_SEQ);
-	max_entries = (size_t)(scale * (500*max_len + 500000*typical_len + 50000000));
-	if( max_memory ){
-		double frac = max_sequences / (double) max_entries;
-		max_entries = (options.max_memory - mem_need) / sizeof(IndexCount);
-		max_sequences = (size_t)(max_entries * frac);
-		if( max_sequences < MAX_TABLE_SEQ / 100 ) max_sequences = MAX_TABLE_SEQ / 100;
-		if( max_sequences > MAX_TABLE_SEQ ) max_sequences = MAX_TABLE_SEQ;
-	}
-	printf( "Table limit with the given memory limit:\n" );
-	printf( "Max number of representatives: %zu\n", max_sequences );
-	printf( "Max number of word counting entries: %zu\n\n", max_entries );
-}
-void SequenceDB::DoClustering( int T, const Options & options )
+void SequenceDB::DoClustering( int T )
 {
 	int i, k;
 	int NAA = options.NAA;
@@ -3043,7 +2162,7 @@ void SequenceDB::DoClustering( int T, const Options & options )
 	// int flag;
 	valarray<size_t>  letters(T);
 
-	//printf( "%li\n", options.mem_limit );
+	//printf( "%li\n".mem_limit );
 
 	if (frag_size){ 
 		frag_no = 0;
@@ -3051,14 +2170,14 @@ void SequenceDB::DoClustering( int T, const Options & options )
 	}
 
 	if( not options.isEST )
-		cal_aax_cutoff(aa1_cutoff, aas_cutoff, aan_cutoff, options.cluster_thd,
+		cal_aax_cutoff(aa1_cutoff, aas_cutoff, aan_cutoff.cluster_thd,
 				options.tolerance, naa_stat_start_percent, naa_stat, NAA);
 
 	Vector<WorkingParam> params(T);
 	Vector<WorkingBuffer> buffers(T);
 	for(i=0; i<T; i++){
 		params[i].Set( aa1_cutoff, aas_cutoff, aan_cutoff );
-		buffers[i].Set( frag_no, max_len, options );
+		buffers[i].Set( frag_no, max_len );
 	}
 
 	// word_table as self comparing table and table buffer:
@@ -3068,14 +2187,13 @@ void SequenceDB::DoClustering( int T, const Options & options )
 
 	int N = sequences.size();
 	// int K = N - 100 * T;
-	size_t mem_need = MinimalMemory( frag_no, buffers[0].total_bytes, T, options );
-	// TODO: size_t mem_limit = MemoryLimit( mem_need, options );
+	size_t mem_need = MinimalMemory( frag_no, buffers[0].total_bytes, T );
+	// TODO: size_t mem_limit = MemoryLimit( mem_need );
 	size_t mem;
 	size_t tabsize = 0;
 	int remaining = 0;
 
-	Options opts( options );
-	opts.ComputeTableLimits( min_len, max_len, len_n50, mem_need );
+	options.ComputeTableLimits( min_len, max_len, len_n50, mem_need );
 
 	omp_set_num_threads(T);
 	for(i=0; i<N; ){
@@ -3114,7 +2232,7 @@ void SequenceDB::DoClustering( int T, const Options & options )
 				Sequence *seq = sequences[j];
 				if (seq->state & IS_REDUNDANT) continue;
 				int tid = omp_get_thread_num();
-				CheckOne( seq, last_table, params[tid], buffers[tid], options );
+				CheckOne( seq, last_table, params[tid], buffers[tid] );
 				if ( options.store_disk && (seq->state & IS_REDUNDANT) ) seq->SwapOut();
 				if( j%print==0 ){
 					printf( "." ); fflush( stdout );
@@ -3137,7 +2255,7 @@ void SequenceDB::DoClustering( int T, const Options & options )
 							Sequence *seq = sequences[ks];
 							i = ks + 1;
 							if (seq->state & IS_REDUNDANT) continue;
-							ClusterOne( seq, ks, word_table, params[tid], buffers[tid], options );
+							ClusterOne( seq, ks, word_table, params[tid], buffers[tid] );
 							if ( options.store_disk && (seq->state & IS_REDUNDANT) ) seq->SwapOut();
 							if( may_stop and word_table.sequences.size() >= 100 ) break;
 							if( word_table.size >= max_items ) break;
@@ -3153,7 +2271,7 @@ void SequenceDB::DoClustering( int T, const Options & options )
 							seq->SwapIn();
 						}
 						int tid = omp_get_thread_num();
-						CheckOne( seq, last_table, params[tid], buffers[tid], options );
+						CheckOne( seq, last_table, params[tid], buffers[tid] );
 						if ( options.store_disk && (seq->state & IS_REDUNDANT) ) seq->SwapOut();
 						if( min > params[tid].len_upper_bound ){
 							may_stop = 1;
@@ -3188,7 +2306,7 @@ void SequenceDB::DoClustering( int T, const Options & options )
 					Sequence *seq = sequences[kk];
 					if (seq->state & IS_REDUNDANT) continue;
 					int tid = omp_get_thread_num();
-					CheckOne( seq, word_table, params[tid], buffers[tid], options );
+					CheckOne( seq, word_table, params[tid], buffers[tid] );
 					if ( options.store_disk && (seq->state & IS_REDUNDANT) ) seq->SwapOut();
 				}
 				bool bk = false;
@@ -3196,7 +2314,7 @@ void SequenceDB::DoClustering( int T, const Options & options )
 					Sequence *seq = sequences[ks];
 					i = k = ks + 1;
 					if (seq->state & IS_REDUNDANT) continue;
-					ClusterOne( seq, ks, word_table, params[0], buffers[0], options );
+					ClusterOne( seq, ks, word_table, params[0], buffers[0] );
 					bk = true;
 					if ( options.store_disk && (seq->state & IS_REDUNDANT) ) seq->SwapOut();
 					if( word_table.size >= max_items ) break;
@@ -3226,14 +2344,14 @@ void SequenceDB::DoClustering( int T, const Options & options )
 	word_table.Clear();
 }
 
-int SequenceDB::CheckOne( Sequence *seq, WordTable & table, WorkingParam & param, WorkingBuffer & buf, const Options & options )
+int SequenceDB::CheckOne( Sequence *seq, WordTable & table, WorkingParam & param, WorkingBuffer & buf )
 {
 	int len = seq->size;
-	param.len_upper_bound = upper_bound_length_rep(len, options);
-	if( options.isEST ) return CheckOneEST( seq, table, param, buf, options );
-	return CheckOneAA( seq, table, param, buf, options );
+	param.len_upper_bound = upper_bound_length_rep(len);
+	if( options.isEST ) return CheckOneEST( seq, table, param, buf );
+	return CheckOneAA( seq, table, param, buf );
 }
-int SequenceDB::CheckOneAA( Sequence *seq, WordTable & table, WorkingParam & param, WorkingBuffer & buf, const Options & options )
+int SequenceDB::CheckOneAA( Sequence *seq, WordTable & table, WorkingParam & param, WorkingBuffer & buf )
 {
 	NVector<IndexCount> & lookCounts = buf.lookCounts;
 	NVector<uint32_t> & indexMapping = buf.indexMapping;
@@ -3279,10 +2397,10 @@ int SequenceDB::CheckOneAA( Sequence *seq, WordTable & table, WorkingParam & par
 		if (len < min_red) return 0; // return flag=0
 	} 
 
-	param.ControlShortCoverage( len_eff, options );
-	param.ComputeRequiredBases( options.NAA, 2, options );
+	param.ControlShortCoverage( len_eff );
+	param.ComputeRequiredBases( options.NAA, 2 );
 
-	buf.EncodeWords( seq, options.NAA, false );
+	buf.EncodeWords( seq.NAA, false );
 
 	// if minimal alignment length > len, return
 	// I can not return earlier, because I need to calc the word_encodes etc
@@ -3340,7 +2458,7 @@ int SequenceDB::CheckOneAA( Sequence *seq, WordTable & table, WorkingParam & par
 			if ( count < required_aan ) continue;
 		}
 
-		param.ControlLongCoverage( len2, options );
+		param.ControlLongCoverage( len2 );
 
 		if ( has_aa2 == 0 )  { // calculate AAP array
 			buf.ComputeAAP( seqi, seq->size );
@@ -3389,7 +2507,7 @@ int SequenceDB::CheckOneAA( Sequence *seq, WordTable & table, WorkingParam & par
 		if (not options.cluster_best) break;
 		update_aax_cutoff(aa1_cutoff, aa2_cutoff, aan_cutoff,
 				options.tolerance, naa_stat_start_percent, naa_stat, NAA, tiden_pc);
-		param.ComputeRequiredBases( options.NAA, 2, options );
+		param.ComputeRequiredBases( options.NAA, 2 );
 	}
 	if( frag_size ) ic = lookCounts.items;
 	while( ic->count ){
@@ -3406,7 +2524,7 @@ int SequenceDB::CheckOneAA( Sequence *seq, WordTable & table, WorkingParam & par
 	return flag;
 
 }
-int SequenceDB::CheckOneEST( Sequence *seq, WordTable & table, WorkingParam & param, WorkingBuffer & buf, const Options & options )
+int SequenceDB::CheckOneEST( Sequence *seq, WordTable & table, WorkingParam & param, WorkingBuffer & buf )
 {
 	NVector<IndexCount> & lookCounts = buf.lookCounts;
 	NVector<uint32_t> & indexMapping = buf.indexMapping;
@@ -3450,9 +2568,9 @@ int SequenceDB::CheckOneEST( Sequence *seq, WordTable & table, WorkingParam & pa
 	} 
 
 
-	param.ControlShortCoverage( len_eff, options );
-	param.ComputeRequiredBases( options.NAA, 4, options );
-	int skip = buf.EncodeWords( seq, options.NAA, true );
+	param.ControlShortCoverage( len_eff );
+	param.ComputeRequiredBases( options.NAA, 4 );
+	int skip = buf.EncodeWords( seq.NAA, true );
 	required_aan -= skip;
 	required_aas -= skip;
 	required_aa1 -= skip;
@@ -3508,7 +2626,7 @@ int SequenceDB::CheckOneEST( Sequence *seq, WordTable & table, WorkingParam & pa
 
 			seqj = rep->data;
 
-			param.ControlLongCoverage( len2, options );
+			param.ControlLongCoverage( len2 );
 
 			if ( has_aas == 0 )  { // calculate AAP array
 				buf.ComputeAAP2( seqi, seq->size );
@@ -3596,7 +2714,7 @@ int SequenceDB::CheckOneEST( Sequence *seq, WordTable & table, WorkingParam & pa
 	}
 	return flag;
 }
-void SequenceDB::ComputeDistance( const Options & options )
+void SequenceDB::ComputeDistance()
 {
 	unsigned int N = sequences.size();
 	int best_score, best_sum;
@@ -3604,7 +2722,7 @@ void SequenceDB::ComputeDistance( const Options & options )
 	int tiden_no, alnln;
 	unsigned int talign_info[5];
 	float distance;
-	WorkingBuffer buf( N, max_len, options );
+	WorkingBuffer buf( N, max_len );
 
 	Vector<NVector<float> > dists( N, NVector<float>(N) );
 
@@ -3614,7 +2732,7 @@ void SequenceDB::ComputeDistance( const Options & options )
 		Sequence *seq = sequences[i];
 		char *seqi = seq->data;
 		unsigned int len = seq->size;
-		buf.EncodeWords( seq, options.NAA, false );
+		buf.EncodeWords( seq.NAA, false );
 		buf.ComputeAAP2( seqi, seq->size );
 		dists[i][i] = 0.0;
 		if((i+1)%1000 ==0) printf( "%9i\n", (i+1) );
@@ -3635,7 +2753,7 @@ void SequenceDB::ComputeDistance( const Options & options )
 		comseq.size = len;
 		for(unsigned int j=0; j<len; j++) comseq.data[i] = seq->data[len-i-1];
 		seqi = comseq.data;
-		buf.EncodeWords( &comseq, options.NAA, false );
+		buf.EncodeWords( &comseq.NAA, false );
 		buf.ComputeAAP2( seqi, seq->size );
 		for(unsigned int j=0; j<i; j++){
 			Sequence *rep = sequences[j];
@@ -3663,60 +2781,58 @@ void SequenceDB::ComputeDistance( const Options & options )
 	}
 	fclose( fout );
 }
-void SequenceDB::DoClustering( const Options & options )
+void SequenceDB::DoClustering()
 {
-	int i;
-	int NAA = options.NAA;
+	size_t NAA = options.NAA;
 	double aa1_cutoff = options.cluster_thd;
 	double aas_cutoff = 1 - (1-options.cluster_thd)*4;
 	double aan_cutoff = 1 - (1-options.cluster_thd)*options.NAA;
-	int seq_no = sequences.size();
-	int frag_no = seq_no;
-	int frag_size = options.frag_size;
+	size_t seq_no = sequences.size();
+	size_t frag_no = seq_no;
+	size_t frag_size = options.frag_size;
 	// int len, len_bound;
 	// int flag;
 
 #if 0
-	ComputeDistance( options );
+	ComputeDistance();
 	return;
 #endif
 
 	if( options.threads > 1 ){
-		DoClustering( options.threads, options );
+		DoClustering( options.threads );
 		temp_files.Clear();
 		return;
 	}
 
 	if (frag_size){ 
 		frag_no = 0;
-		for (i=0; i<seq_no; i++) frag_no += (sequences[i]->size - NAA) / frag_size + 1;
+		for (size_t i=0; i<seq_no; i++) frag_no += (sequences[i]->size - NAA) / frag_size + 1;
 	}
 
 	if( not options.isEST )
-		cal_aax_cutoff(aa1_cutoff, aas_cutoff, aan_cutoff, options.cluster_thd,
+		cal_aax_cutoff(aa1_cutoff, aas_cutoff, aan_cutoff.cluster_thd,
 				options.tolerance, naa_stat_start_percent, naa_stat, NAA);
 
 	WorkingParam param( aa1_cutoff, aas_cutoff, aan_cutoff );
-	WorkingBuffer buffer( frag_no, max_len, options );
+	WorkingBuffer buffer( frag_no, max_len );
 
 	WordTable word_table( options.NAA, NAAN );
 
-	size_t mem_need = MinimalMemory( frag_no, buffer.total_bytes, 1, options );
-	// TODO: size_t mem_limit = MemoryLimit( mem_need, options );
-	int N = sequences.size();
+	size_t mem_need = MinimalMemory( frag_no, buffer.total_bytes, 1 );
+	// TODO: size_t mem_limit = MemoryLimit( mem_need );
+	size_t N = sequences.size();
 
 	size_t total_letters = total_letter;
 	size_t tabsize = 0;
 
-	Options opts( options );
-	opts.ComputeTableLimits( min_len, max_len, len_n50, mem_need );
+	options.ComputeTableLimits( min_len, max_len, len_n50, mem_need );
 
-	for(i=0; i<N; ){
+	for(size_t i=0; i<N; ){
 		float redundancy = (rep_seqs.size() + 1.0) / (i + 1.0);
-		int m = i;
+		size_t m = i;
 		size_t sum = 0;
-		size_t max_items = opts.max_entries;
-		size_t max_seqs = opts.max_sequences;
+		size_t max_items = options.max_entries;
+		size_t max_seqs = options.max_sequences;
 		size_t items = 0;
 
 // find a block from i to m, so that this block can fit into a word table
@@ -3742,7 +2858,7 @@ void SequenceDB::DoClustering( const Options & options )
 			Sequence *seq = sequences[ks];
 			i = ks + 1;
 			if (seq->state & IS_REDUNDANT) continue;
-			ClusterOne( seq, ks, word_table, param, buffer, options );
+			ClusterOne( seq, ks, word_table, param, buffer );
 			total_letters -= seq->size;
 			if( options.store_disk && (seq->state & IS_REDUNDANT) ) seq->SwapOut();
 			if( word_table.size >= max_items ) break;
@@ -3752,14 +2868,14 @@ void SequenceDB::DoClustering( const Options & options )
 		m = i;
 		if( word_table.size == 0 ) continue;
 		float p0 = 0;
-		for(int j=m; j<N; j++){ // use this word table to screen rest sequences m->N
+		for(size_t j=m; j<N; j++){ // use this word table to screen rest sequences m->N
 			Sequence *seq = sequences[j];
 			if (seq->state & IS_REDUNDANT) continue;
 			if ( options.store_disk ) seq->SwapIn();
-			CheckOne( seq, word_table, param, buffer, options );
+			CheckOne( seq, word_table, param, buffer );
 			total_letters -= seq->size;
 			if ( options.store_disk && (seq->state & IS_REDUNDANT) ) seq->SwapOut();
-			int len_bound = param.len_upper_bound;
+			size_t len_bound = param.len_upper_bound;
 			if( word_table.sequences[ word_table.sequences.size()-1 ]->size > len_bound ){
 				break;
 			}
@@ -3791,7 +2907,7 @@ void SequenceDB::DoClustering( const Options & options )
 
 }
 
-void SequenceDB::ClusterTo( SequenceDB & other, const Options & options )
+void SequenceDB::ClusterTo( SequenceDB & other )
 {
 	int i, flag;
 	int len, len_tmp, len_lower_bound, len_upper_bound;
@@ -3806,7 +2922,7 @@ void SequenceDB::ClusterTo( SequenceDB & other, const Options & options )
 	Vector<INTs> word_encodes_no( MAX_SEQ );
 
 	if( not options.isEST ){
-		cal_aax_cutoff(aa1_cutoff, aas_cutoff, aan_cutoff, options.cluster_thd,
+		cal_aax_cutoff(aa1_cutoff, aas_cutoff, aan_cutoff.cluster_thd,
 				options.tolerance, naa_stat_start_percent, naa_stat, NAA);
 	}
 
@@ -3822,20 +2938,19 @@ void SequenceDB::ClusterTo( SequenceDB & other, const Options & options )
 	WorkingBuffer & buffer = buffers[0];
 	for(i=0; i<T; i++){
 		params[i].Set( aa1_cutoff, aas_cutoff, aan_cutoff );
-		buffers[i].Set( N, max_len, options );
+		buffers[i].Set( N, max_len );
 	}
 	if( T >1 ) omp_set_num_threads(T);
 
-	size_t mem_need = MinimalMemory( N, buffer.total_bytes, T, options, other.total_letter+other.total_desc );
-	// TODO: size_t mem_limit = MemoryLimit( mem_need, options );
+	size_t mem_need = MinimalMemory( N, buffer.total_bytes, T, other.total_letter+other.total_desc );
+	// TODO: size_t mem_limit = MemoryLimit( mem_need );
 
-	Options opts( options );
-	opts.ComputeTableLimits( min_len, max_len, len_n50, mem_need );
+	options.ComputeTableLimits( min_len, max_len, len_n50, mem_need );
 
 	WordTable word_table( options.NAA, NAAN );
 
-	size_t max_items = opts.max_entries;
-	size_t max_seqs = opts.max_sequences;
+	size_t max_items = options.max_entries;
+	size_t max_seqs = options.max_sequences;
 	for(i=0; i<N; ){
 		size_t items = 0;
 		size_t sum = 0;
@@ -3876,7 +2991,7 @@ void SequenceDB::ClusterTo( SequenceDB & other, const Options & options )
 				if( seq->state & IS_REDUNDANT ) continue;
 				int len = seq->size;
 				// char *seqi = seq->data;
-				int len_upper_bound = upper_bound_length_rep(len,options);
+				int len_upper_bound = upper_bound_length_rep(len);
 				int len_lower_bound = len - options.diff_cutoff_aa2;
 
 				int len_tmp = (int) ( ((double)len) * options.diff_cutoff2);
@@ -3891,7 +3006,7 @@ void SequenceDB::ClusterTo( SequenceDB & other, const Options & options )
 					continue;
 				}
 
-				int flag = other.CheckOne( seq, word_table, params[tid], buffers[tid], options );
+				int flag = other.CheckOne( seq, word_table, params[tid], buffers[tid] );
 				if ((flag == 1) || (flag == -1)) { // if similar to old one delete it
 					if (! options.cluster_best) {
 						seq->Clear();
@@ -3914,7 +3029,7 @@ void SequenceDB::ClusterTo( SequenceDB & other, const Options & options )
 				if( seq->state & IS_REDUNDANT ) continue;
 				len = seq->size;
 				seqi = seq->data;
-				len_upper_bound = upper_bound_length_rep(len,options);
+				len_upper_bound = upper_bound_length_rep(len);
 				len_lower_bound = len - options.diff_cutoff_aa2;
 
 				len_tmp = (int) ( ((double)len) * options.diff_cutoff2);
@@ -3926,7 +3041,7 @@ void SequenceDB::ClusterTo( SequenceDB & other, const Options & options )
 					break;
 				}
 
-				flag = other.CheckOne( seq, word_table, param, buffer, options );
+				flag = other.CheckOne( seq, word_table, param, buffer );
 				if ((flag == 1) || (flag == -1)) { // if similar to old one delete it
 					if (! options.cluster_best) {
 						seq->Clear();
@@ -4001,28 +3116,28 @@ int calc_ann_list(int len, char *seqi, int NAA, int& aan_no, Vector<int> & aan_l
 	return OK_FUNC;
 } // END calc_ann_list
 
-void make_comp_short_word_index(int NAA, int *NAAN_array, Vector<int> &Comp_AAN_idx) {
-	int i, j, k, icomp, k1;
+void make_comp_short_word_index(size_t NAA) {
 	int c[4] = {3,2,1,0};
 	unsigned char short_word[32]; //short_word[12] is enough
 
 	int NAA1 = NAAN_array[1];
 	int NAAN = NAAN_array[NAA];
 
-	for (i=0; i<NAAN; i++) {
+	for (size_t i=0; i<NAAN; i++) {
 		// decompose i back to short_word
-		for (k=i, j=0; j<NAA; j++) {
+		for (size_t k=i, j=0; j<NAA; j++) {
 			short_word[j] = (unsigned char) (k % NAA1);
 			k  = k / NAA1;
 		}
 
 		// calc_comp_aan_list
-		icomp=0;
-		for (k=0, k1=NAA-1; k<NAA; k++, k1--) icomp += c[short_word[k1]] * NAAN_array[k];
+		size_t icomp = 0;
+		for (size_t k=0, k1=NAA-1; k<NAA; k++, k1--)
+			icomp += c[short_word[k1]] * NAAN_array[k];
 
 		Comp_AAN_idx[i] = icomp;
 	}
-} // make_comp_short_word_index
+}
 
 //quick_sort_idx calling (a, idx, 0, no-1)
 //sort a with another array idx

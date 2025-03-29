@@ -1,5 +1,6 @@
 
 #include"cdhit-common.h"
+
 #include<stdlib.h>
 #include<iostream>
 
@@ -148,7 +149,7 @@ char txt_option_gap[] = "\tgap opening score, default -6\n";
 char txt_option_gap2[] = "\tgap opening score, default -3\n";
 char txt_option_gap_ext[] = "\tgap extension score, default -1\n";
 
-int print_usage (char *arg) {
+int print_usage (const char *arg) {
   cout << cd_hit_ver << "\n\n" ;
   cout << "Usage: "<< arg << " [Options] \n\nOptions\n\n";
   cout << "   -i" << txt_option_i;
@@ -187,7 +188,7 @@ int print_usage (char *arg) {
 
 
 
-int print_usage_2d (char *arg) {
+int print_usage_2d (const char *arg) {
   cout << cd_hit_ver << "\n\n" ;
   cout << "Usage: "<< arg << " [Options] \n\nOptions\n\n";
   cout << "   -i" << txt_option_i_2d;
@@ -227,7 +228,7 @@ int print_usage_2d (char *arg) {
 } // END print_usage_2d
 
 
-int print_usage_est (char *arg) {
+int print_usage_est (const char *arg) {
   cout << cd_hit_ver << "\n\n" ;
   cout << "Usage: "<< arg << " [Options] \n\nOptions\n\n";
   cout << "   -i" << txt_option_i;
@@ -276,7 +277,7 @@ int print_usage_est (char *arg) {
 } // END print_usage_est
 
 
-int print_usage_est_2d (char *arg) {
+int print_usage_est_2d (const char *arg) {
   cout << cd_hit_ver << "\n\n" ;
   cout << "Usage: "<< arg << " [Options] \n\nOptions\n\n";
   cout << "   -i" << txt_option_i_2d;
@@ -325,7 +326,7 @@ int print_usage_est_2d (char *arg) {
 } // END print_usage_est_2d
 
 
-int print_usage_div (char *arg) {
+int print_usage_div (const char *arg) {
   cout << cd_hit_ver << "\n\n" ;
   cout << "Usage: "<< arg << " [Options] \n\nOptions\n\n";
   cout << "Options " << endl << endl;
@@ -344,7 +345,7 @@ char mytxt_option_c[] =
 char mytxt_option_b[] = "\tband_width of alignment, default 10\n";
 char mytxt_option_n_est[] = "\tword_length, default 10, see user's guide for choosing it\n";
 char mytxt_option_D[] = "\tmax size per indel, default 1\n";
-int print_usage_454 (char *arg)
+int print_usage_454 (const char *arg)
 {
   cout << cd_hit_ver << "\n\n" ;
   cout << "Usage: "<< arg << " [Options] \n\nOptions\n\n";

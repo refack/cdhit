@@ -22,19 +22,13 @@
 //                    Email: l2fu@ucsd.edu, fu@daovm.net
 // =============================================================================
 
-#include "cdhit-common.h"
-#include "cdhit-utility.h"
+#include "lib/cdhit-common.h"
+
 //over-write some defs in cd-hi.h for est version
 #undef MAX_UAA
 #define MAX_UAA 4
-
 //over-write some defs in cd-hi-init.h for est version
 
-void setaa_to_na();
-void make_comp_iseq(int len, char *iseq_comp, char *iseq);
-void make_comp_short_word_index(int NAA, int *NAAN_array, Vector<int> & Comp_AAN_idx);
-
-Options options;
 SequenceDB seq_db;
 SequenceDB seq_db2;
 
@@ -44,7 +38,7 @@ SequenceDB seq_db2;
 
 
 ////////////////////////////////////  MAIN /////////////////////////////////////
-int main(int argc, char **argv)
+int main(int argc, const char **argv)
 {
 	string db_in;
 	string db_in2;
@@ -78,14 +72,13 @@ int main(int argc, char **argv)
         db_out_pe = options.output_pe;
 
 
-	InitNAA( MAX_UAA );
 	options.NAAN = NAAN_array[options.NAA];
 	seq_db.NAAN = NAAN_array[options.NAA];
 	seq_db2.NAAN = NAAN_array[options.NAA];
 
 	if ( options.option_r ) {
 		Comp_AAN_idx.resize( seq_db.NAAN );
-		make_comp_short_word_index(options.NAA, NAAN_array, Comp_AAN_idx);
+		make_comp_short_word_index(options.NAA);
 	}
 
         if ( options.PE_mode ) {seq_db.Read( db_in.c_str(), db_in_pe.c_str(), options );}

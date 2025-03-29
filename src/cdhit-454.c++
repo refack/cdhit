@@ -21,13 +21,11 @@
 //                    Email: l2fu@ucsd.edu, fu@daovm.net
 // =============================================================================
 
-#include "cdhit-common.h"
-#include "cdhit-utility.h"
+#include "lib/cdhit-common.h"
 
 #undef MAX_UAA
 #define MAX_UAA 4
 
-Options options;
 SequenceDB seq_db;
 
 // matrix below is for highly similar seqs
@@ -51,7 +49,7 @@ int myBLOSUM62_na2[] = {
 void setaa_to_na();
 
 ////////////////////////////////////  MAIN /////////////////////////////////////
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
 	string db_in;
 	string db_out;
@@ -84,7 +82,6 @@ int main(int argc, char *argv[])
 	db_in = options.input;
 	db_out = options.output;
 
-	InitNAA( MAX_UAA );
 	options.NAAN = NAAN_array[options.NAA];
 	seq_db.NAAN = NAAN_array[options.NAA];
 

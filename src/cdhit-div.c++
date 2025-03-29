@@ -21,9 +21,8 @@
 //                                      Email: l2fu@ucsd.edu, fu@daovm.net
 // =============================================================================
 
-#include "cdhit-common.h"
+#include "lib/cdhit-common.h"
 
-Options options;
 SequenceDB seq_db;
 
 ////////////////////////////////////  MAIN /////////////////////////////////////
