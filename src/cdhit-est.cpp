@@ -24,9 +24,10 @@
 
 #define SHORT_SEQ
 
-#include "lib/cdhit-common.h"
+import "lib/cdhit-common.h";
 import std;
 import Options;
+import SequenceDB;
 
 // over-write some defs in cd-hi.h for est version
 #undef MAX_UAA

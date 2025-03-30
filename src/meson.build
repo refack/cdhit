@@ -1,50 +1,78 @@
 # Compiler and build options
 common_flags = []
-openmp_flag = get_option('openmp') ? [] : ['-DNO_OPENMP']
-zlib_flag = get_option('zlib') ? ['-DWITH_ZLIB'] : []
 
-extra_defines = ['-DNO_OLDNAMES']
+# Detect the compiler and set flags accordingly
+compiler = meson.get_compiler('cpp')
+
+if compiler.get_id() == 'gcc' or compiler.get_id() == 'clang'
+  extra_defines = ['-DNO_OLDNAMES']
+  openmp_flag = get_option('openmp') ? ['-fopenmp'] : ['-DNO_OPENMP']
+  zlib_link_flag = get_option('zlib') ? ['-lz'] : ['-DNO_ZLIB']
+  flag_prefix = '-'
+elif compiler.get_id() == 'msvc'
+  extra_defines = ['/DNO_OLDNAMES']
+  openmp_flag = get_option('openmp') ? ['/openmp'] : ['/DNO_OPENMP']
+  zlib_link_flag = get_option('zlib') ? ['zlib.lib'] : ['/DNO_ZLIB']
+  flag_prefix = '/'
+else
+  error('Unsupported compiler: ' + compiler.get_id())
+endif
+
 # Handle the MAX_SEQ option
 max_seq_value = get_option('MAX_SEQ')
 if max_seq_value > 0
-  extra_defines += ['-DMAX_SEQ=' + max_seq_value.to_string()]
+  extra_defines += [flag_prefix + 'DMAX_SEQ=' + max_seq_value.to_string()]
 endif
 
-cc_flags = common_flags + openmp_flag + zlib_flag + extra_defines
+cc_flags = common_flags + openmp_flag + extra_defines
 add_project_arguments(cc_flags, language: 'cpp')
 
+deps = []
+if get_option('zlib')
+  # Fetch zlib dependency
+  deps += [dependency('zlib', required: get_option('zlib'), fallback: ['zlib', 'zlib_dep'])]
+endif
+
+
 # Linker flags
-openmp_link_flag = get_option('openmp') ? [] : []
-zlib_link_flag = get_option('zlib') ? ['-lz'] : []
-link_static_flag = get_option('static') ? ['-static'] : []
-ld_flags = openmp_link_flag + zlib_link_flag + link_static_flag
+link_static_flag = get_option('static') ? [flag_prefix + 'static'] : []
+ld_flags = zlib_link_flag + link_static_flag
 
-module_common = static_library(
-  'module_common',
-  'lib/Options.ixx',
-  build_by_default : true,
-)
+src_dir = join_paths(meson.project_source_root(), 'src')
+message('Using source directory: ' + src_dir)
 
+# Common source files
 common_sources = [
-  'lib/cdhit-common.c++',
-  'lib/cdhit-utility.c++',
-  'lib/ScoreMatrix.cpp',
-  'lib/aligners.cpp',
+  join_paths(src_dir, 'lib', 'aligners.cpp'),
+  join_paths(src_dir, 'lib', 'cdhit-common.cpp'),
+  join_paths(src_dir, 'lib', 'cdhit-utility.cpp'),
+  join_paths(src_dir, 'lib', 'Options.ixx'),
+  join_paths(src_dir, 'lib', 'ScoreMatrix.ixx'),
+  join_paths(src_dir, 'lib', 'SequanceDB.ixx'),
+  join_paths(src_dir, 'lib', 'WordTable.ixx'),
+  join_paths(src_dir, 'lib', 'WorkingBuffer.ixx'),
 ]
 
-# Source files
+# Source files for executables
 sources = {
-  'cd-hit': files(common_sources, 'cdhit.c++'),
-  'cd-hit-2d': files(common_sources, 'cdhit-2d.c++'),
-  'cd-hit-est': files(common_sources, 'cdhit-est.c++'),
-  'cd-hit-est-2d': files(common_sources, 'cdhit-est-2d.c++'),
-  'cd-hit-div': files(common_sources, 'cdhit-div.c++'),
-  'cd-hit-454': files(common_sources, 'cdhit-454.c++'),
+  'cd-hit': join_paths(src_dir, 'cdhit.cpp'),
+  'cd-hit-2d': join_paths(src_dir, 'cdhit-2d.cpp'),
+  'cd-hit-est': join_paths(src_dir, 'cdhit-est.cpp'),
+  'cd-hit-est-2d': join_paths(src_dir, 'cdhit-est-2d.cpp'),
+  'cd-hit-div': join_paths(src_dir, 'cdhit-div.cpp'),
+  'cd-hit-454': join_paths(src_dir, 'cdhit-454.cpp'),
 }
 
 # Build targets
 executables = []
 foreach prog, src : sources
-  exe = executable(prog, src, install: true, link_args: ld_flags, install_dir: meson.project_source_root(), link_with : module_common,)
+  exe = executable(
+    prog,
+    files(common_sources, src),
+    install: true,
+    link_args: ld_flags,
+    install_dir: meson.project_source_root(),
+    dependencies: deps,
+  )
   executables += exe
 endforeach

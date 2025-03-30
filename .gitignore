@@ -4,3 +4,7 @@
 /.makeartifacts
 /.logs
 /.vs
+subprojects/
+vcpkg_installed/
+vcpkg/
+zzz/

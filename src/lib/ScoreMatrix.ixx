@@ -1,4 +1,9 @@
-#include "ScoreMatrix.h"
+export module ScoreMatrix;
+
+import std;
+
+export constexpr unsigned int MAX_AA{ 23 };
+export constexpr unsigned int MAX_SEQ{ 655360 };
 
 constexpr int BLOSUM62[] = {
 	4,                                                                  // A
@@ -41,49 +46,54 @@ constexpr int BLOSUM62_na[] = {
   //0  1  2  3  3  4  5
 };
 
-ScoreMatrix::ScoreMatrix()
+export class ScoreMatrix
 {
-	init();
-}
+private:
+public:
+	int matrix[MAX_AA][MAX_AA];
+	int gap, ext_gap;
 
-void ScoreMatrix::init()
-{
-	set_gap(-11, -1);
-	set_matrix(BLOSUM62);
-}
+	ScoreMatrix()
+	{
+		set_gap(-11, -1);
+		set_matrix(BLOSUM62);
+	}
 
-void ScoreMatrix::set_gap(int gap1, int ext_gap1)
-{
-	gap = MAX_SEQ * gap1;
-	ext_gap = MAX_SEQ * ext_gap1;
-}
+	void set_gap(int gap1, int ext_gap1)
+	{
+		gap = MAX_SEQ * gap1;
+		ext_gap = MAX_SEQ * ext_gap1;
+	}
 
-void ScoreMatrix::set_matrix(const int *mat1)
-{
-	unsigned k = 0;
-	for (unsigned i = 0; i < MAX_AA; i++)
-		for (unsigned j = 0; j <= i; j++)
-			matrix[j][i] = matrix[i][j] = MAX_SEQ * mat1[k++];
-}
+	void set_matrix(const int* mat1)
+	{
+		unsigned k = 0;
+		for (unsigned i = 0; i < MAX_AA; i++)
+			for (unsigned j = 0; j <= i; j++)
+				matrix[j][i] = matrix[i][j] = MAX_SEQ * mat1[k++];
+	}
 
-void ScoreMatrix::set_to_na()
-{
-	set_gap(-6, -1);
-	set_matrix(BLOSUM62_na);
-}
-// Only for est
-void ScoreMatrix::set_match(int score)
-{
-	int i;
-	for (i = 0; i < 5; i++)
-		matrix[i][i] = MAX_SEQ * score;
-	// matrix[3][4] = matrix[4][3] = MAX_SEQ * score;
-}
-// Only for est
-void ScoreMatrix::set_mismatch(int score)
-{
-	for (unsigned i = 0; i < MAX_AA; i++)
-		for (unsigned j = 0; j < i; j++)
-			matrix[j][i] = matrix[i][j] = MAX_SEQ * score;
-	matrix[3][4] = matrix[4][3] = MAX_SEQ;
-}
+	void set_to_na()
+	{
+		set_gap(-6, -1);
+		set_matrix(BLOSUM62_na);
+	}
+	// Only for est
+	void set_match(int score)
+	{
+		int i;
+		for (i = 0; i < 5; i++)
+			matrix[i][i] = MAX_SEQ * score;
+		// matrix[3][4] = matrix[4][3] = MAX_SEQ * score;
+	}
+	// Only for est
+	void set_mismatch(int score)
+	{
+		for (unsigned i = 0; i < MAX_AA; i++)
+			for (unsigned j = 0; j < i; j++)
+				matrix[j][i] = matrix[i][j] = MAX_SEQ * score;
+		matrix[3][4] = matrix[4][3] = MAX_SEQ;
+	}
+};
+
+export extern ScoreMatrix  mat;

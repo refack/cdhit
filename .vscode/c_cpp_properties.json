@@ -6,10 +6,8 @@
                 "${workspaceFolder}/**"
             ],
             "defines": [
-                "WIN32",
                 "UNICODE",
                 "_UNICODE",
-                "WITH_ZLIB",
                 "NO_OLDNAMES",
                 "CDHIT_VERSION",
             ],
@@ -26,10 +24,8 @@
                 "${workspaceFolder}/src/**"
             ],
             "defines": [
-                "WIN32",
                 "UNICODE",
                 "_UNICODE",
-                "WITH_ZLIB",
                 "NO_OLDNAMES",
                 "CDHIT_VERSION",
             ],

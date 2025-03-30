@@ -25,31 +25,23 @@
 //                    Email: l2fu@ucsd.edu, fu@daovm.net
 // =============================================================================
 
-#ifdef _WIN32
-typedef int pid_t;
-#include <sys/types.h>
-typedef _off_t off_t;
-#endif
+// #ifdef _WIN32
+// typedef int pid_t;
+// typedef _off_t off_t;
+// #endif
 
-#include <iostream>
-#include <fstream>
-#include <iomanip>
-#include <cstdlib>
-#include <string>
-#include <string_view>
-#include <vector>
-#include <valarray>
-#include <map>
+import std;
 
-#include <stdio.h>
-#include <ctype.h>
-#include <stdint.h>
-#include <time.h>
+//#include <stdio.h>
+//#include <ctype.h>
+//#include <stdint.h>
+//#include <time.h>
 
 #ifndef NO_OPENMP
 
-#include <omp.h>
-constexpr std::string_view WITH_OPENMP = "(+OpenMP)";
+import <omp.h>;
+
+inline constexpr auto WITH_OPENMP = "(+OpenMP)";
 
 #else
 
@@ -59,13 +51,13 @@ constexpr string WITH_OPENMP = "";
 
 #endif
 
-#ifdef WITH_ZLIB
+#ifndef NO_ZLIB
 // #define Z_LARGE64 1
 // #define Z_WANT64 1
-#include <zlib.h>
+import <zlib.h>;
 #endif
 
-#include "ScoreMatrix.h"
+import ScoreMatrix;
 
 #define MAX_NA 6
 #define MAX_UAA 21
@@ -107,37 +99,18 @@ typedef unsigned short INTs;
 using namespace std;
 
 // class function definition
-constexpr char aa[] = {"ARNDCQEGHILKMFPSTWYVBZX"};
+constexpr char aa[] = { "ARNDCQEGHILKMFPSTWYVBZX" };
 //{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,2,6,20};
 extern int aa2idx[];
 
 constexpr auto MEGA_MiBi = 1'000'000;
-
-// the parent containter must guarantee continuous memory allocation.
-// std::valarray could be used instead of std::vector.
-template <class TYPE>
-class Vector : public vector<TYPE>
-{
-public:
-	Vector() : vector<TYPE>() {}
-	Vector(size_t size) : vector<TYPE>(size) {}
-	Vector(size_t size, const TYPE &deft) : vector<TYPE>(size, deft) {}
-
-	void Append(const TYPE &item)
-	{
-		size_t n = this->size();
-		if (n + 1 >= this->capacity())
-			this->reserve(n + n / 5 + 1);
-		this->push_back(item);
-	}
-};
 
 // for primitive types only
 template <class TYPE>
 class NVector
 {
 public:
-	TYPE *items;
+	TYPE* items;
 	int size;
 	int capacity;
 
@@ -146,13 +119,13 @@ public:
 		size = capacity = 0;
 		items = NULL;
 	}
-	NVector(int n, const TYPE &v = TYPE())
+	NVector(int n, const TYPE& v = TYPE())
 	{
 		size = capacity = 0;
 		items = NULL;
 		Resize(n, v);
 	}
-	NVector(const NVector &other)
+	NVector(const NVector& other)
 	{
 		size = capacity = 0;
 		items = NULL;
@@ -178,7 +151,7 @@ public:
 		items = NULL;
 	}
 
-	void Resize(int n, const TYPE &value = TYPE())
+	void Resize(int n, const TYPE& value = TYPE())
 	{
 		if (n == size && capacity > 0)
 			return;
@@ -188,44 +161,44 @@ public:
 		if (n != capacity)
 		{
 			capacity = n;
-			items = (TYPE *)realloc(items, capacity * sizeof(TYPE));
+			items = (TYPE*)realloc(items, capacity * sizeof(TYPE));
 		}
 		for (i = size; i < n; i++)
 			items[i] = value;
 		size = n;
 	}
-	void Append(const TYPE &item)
+	void Append(const TYPE& item)
 	{
 		if (size + 1 >= capacity)
 		{
 			capacity = size + size / 5 + 1;
-			items = (TYPE *)realloc(items, capacity * sizeof(TYPE));
+			items = (TYPE*)realloc(items, capacity * sizeof(TYPE));
 		}
 		items[size] = item;
 		size++;
 	}
 
-	TYPE &operator[](const int i)
+	TYPE& operator[](const int i)
 	{
 		// if( i <0 or i >= size ) printf( "out of range\n" );
 		return items[i];
 	}
-	TYPE &operator[](const int i) const
+	TYPE& operator[](const int i) const
 	{
 		// if( i <0 or i >= size ) printf( "out of range\n" );
 		return items[i];
 	}
 };
 typedef NVector<int> VectorInt;
-typedef Vector<VectorInt> MatrixInt;
+typedef std::vector<VectorInt> MatrixInt;
 
 typedef NVector<int64_t> VectorInt64;
-typedef Vector<VectorInt64> MatrixInt64;
+typedef std::vector<VectorInt64> MatrixInt64;
 
 ////////// Class definition //////////
 
 typedef NVector<INTs> VectorIntX;
-typedef Vector<VectorIntX> MatrixIntX;
+typedef std::vector<VectorIntX> MatrixIntX;
 
 constexpr size_t NAA0 = 1;
 constexpr size_t NAA1 = MAX_UAA;
@@ -269,42 +242,12 @@ struct IndexCount
 
 struct Sequence;
 
-class WordTable
-{
-private:
-public:
-	Vector<NVector<IndexCount>> indexCounts; // hold index and word counts of seqs
-	Vector<Sequence *> sequences;
-	int NAA;	// length of word
-	int NAAN;	// rows of table
-	char is_aa; // aa is for prot
-	size_t size;
-	int frag_count;
-
-public:
-	WordTable(int naa = 0, int naan = 0);
-	void Init(int, int);
-	void Clear();
-	void SetDNA();
-	int AddWordCounts(NVector<IndexCount> &counts, Sequence *seq, bool skipN = false);
-	int AddWordCountsFrag(NVector<IndexCount> &counts, int frag, int frag_size, int repfrag);
-
-	int AddWordCounts(int aan_no, Vector<int> &word_encodes,
-					  Vector<INTs> &word_encodes_no, int idx, bool skipN = false);
-	int AddWordCountsFrag(int aan_no, Vector<int> &word_encodes,
-						  Vector<INTs> &word_encodes_no, int frag, int frag_size);
-	int CountWords(int aan_no, Vector<int> &aan_list, Vector<INTs> &aan_list_no,
-				   NVector<IndexCount> &lookCounts, NVector<uint32_t> &indexMapping,
-				   bool est = false, int min = 0);
-	void PrintAll();
-}; // END class INDEX_TBL
-
-void bomb_error(const char *message);
+void bomb_error(const char* message);
 
 struct Sequence
 {
 	// real sequence, if it is not stored swap file:
-	char *data;
+	char* data;
 	// length of the sequence:
 	size_t size;
 	size_t bufsize;
@@ -315,7 +258,7 @@ struct Sequence
 	// if swap != NULL, the sequence is stored in file.
 	// swap is opened as temporary file, which will be deleted automatically
 	// after the program is finished:
-	FILE *swap;
+	FILE* swap;
 	// stream offset of the sequence:
 	size_t offset;
 
@@ -325,7 +268,7 @@ struct Sequence
 	size_t tot_length;
 	size_t tot_length2;
 
-	char *identifier;
+	char* identifier;
 
 	// index of the sequence in the original database:
 	size_t index;
@@ -336,19 +279,19 @@ struct Sequence
 	size_t coverage[4];
 
 	Sequence();
-	Sequence(const Sequence &other);
-	Sequence(const Sequence &other, const Sequence &other2, size_t mode);
+	Sequence(const Sequence& other);
+	Sequence(const Sequence& other, const Sequence& other2, size_t mode);
 	~Sequence();
 
 	void Clear();
 
-	void operator=(const char *s);
-	void operator+=(const char *s);
+	void operator=(const char* s);
+	void operator+=(const char* s);
 
 	void Resize(size_t n);
 	void Reserve(size_t n);
 
-	void Swap(Sequence &other);
+	void Swap(Sequence& other);
 	int Format();
 
 	void ConvertBases();
@@ -356,28 +299,22 @@ struct Sequence
 
 	void SwapIn();
 	void SwapOut();
-	void PrintInfo(size_t id, FILE *fout, char *buf);
+	void PrintInfo(size_t id, FILE* fout, char* buf);
 };
 
 struct WorkingParam
 {
-	double aa1_cutoff;
-	double aas_cutoff; /* or aa2 */
-	double aan_cutoff;
-	int len_upper_bound;
-	int len_lower_bound;
+	double aa1_cutoff = 0;
+	double aas_cutoff = 0;
+	double aan_cutoff = 0;
+	int len_upper_bound = 0;
+	int len_lower_bound = 0;
 
 	WorkingParam(double a1 = 0, double a2 = 0, double an = 0)
-	{
-		Set(a1, a2, an);
-	}
-	void Set(double a1 = 0, double a2 = 0, double an = 0)
 	{
 		aa1_cutoff = a1;
 		aas_cutoff = a2;
 		aan_cutoff = an;
-		len_upper_bound = 0;
-		len_lower_bound = 0;
 	}
 
 	int len_eff;
@@ -404,188 +341,168 @@ enum
 	DP_BACK_TOP = 3
 };
 
-struct WorkingBuffer
+void bomb_error(const char* message);
+void bomb_error(const char* message, const char* message2);
+void bomb_warning(const char* message);
+void bomb_warning(const char* message, const char* message2);
+void format_seq(char* seq);
+
+void strrev(const char* p);
+int print_usage(const char* arg);
+int print_usage_2d(const char* arg);
+int print_usage_est(const char* arg);
+int print_usage_div(const char* arg);
+int print_usage_est_2d(const char* arg);
+int print_usage_454(const char* arg);
+
+void cal_aax_cutoff(double& aa1_cutoff, double& aa2_cutoff, double& aan_cutoff,	double cluster_thd, int tolerance, int naa_stat_start_percent,	int naa_stat[5][61][4], int NAA)
 {
-	Vector<int> taap;
-	Vector<int> word_encodes;
-	Vector<int> word_encodes_backup;
-	Vector<INTs> word_encodes_no;
-	Vector<INTs> aap_list;
-	Vector<INTs> aap_begin;
-	// Vector<IndexCount>  indexCounts;
-	NVector<IndexCount> lookCounts;
-	NVector<uint32_t> indexMapping;
-	MatrixInt64 score_mat;
-	MatrixInt back_mat;
-	Vector<int> diag_score;
-	Vector<int> diag_score2;
-	Vector<int> aan_list_comp;
-	Vector<char> seqi_comp;
-	int total_bytes;
+	aa1_cutoff = cluster_thd;
+	aa2_cutoff = 1 - (1 - cluster_thd) * 2;
+	aan_cutoff = 1 - (1 - cluster_thd) * NAA;
+	if (tolerance == 0) return;
 
-	WorkingBuffer(size_t frag = 0, size_t maxlen = 0)
-	{
-		Set(frag, maxlen);
-		seqi_comp.resize(MAX_SEQ);
-	}
-	void Set(size_t frag, size_t maxlen, const bool isEST, const size_t band_width)
-	{
-		bool est = isEST;
-		size_t m = MAX_UAA * MAX_UAA;
-		size_t max_len = maxlen;
-		size_t band = max_len * max_len;
-		if (est)
-			m = m * m;
-		if (band > band_width)
-			band = band_width;
-		taap.resize(m);
-		aap_list.resize(max_len);
-		aap_begin.resize(m);
-		// indexCounts.resize( max_len );
-		word_encodes.resize(max_len);
-		word_encodes_no.resize(max_len);
-		word_encodes_backup.resize(max_len);
-		/* each table can not contain more than MAX_TABLE_SEQ representatives or fragments! */
-		if (frag > MAX_TABLE_SEQ)
-			frag = MAX_TABLE_SEQ;
-		lookCounts.Resize(frag + 2);
-		indexMapping.Resize(frag + 2);
-		diag_score.resize(MAX_DIAG);
-		diag_score2.resize(MAX_DIAG);
-		aan_list_comp.resize(max_len);
-		total_bytes = max_len;
-		total_bytes += taap.size() * sizeof(int);
-		total_bytes += word_encodes.size() * sizeof(int);
-		total_bytes += word_encodes_backup.size() * sizeof(int);
-		total_bytes += diag_score.size() * sizeof(int);
-		total_bytes += diag_score2.size() * sizeof(int);
-		total_bytes += aan_list_comp.size() * sizeof(int);
-		total_bytes += word_encodes_no.size() * sizeof(INTs);
-		total_bytes += aap_list.size() * sizeof(INTs);
-		total_bytes += aap_begin.size() * sizeof(INTs);
-		total_bytes += indexMapping.Size() * sizeof(uint32_t);
-		// total_bytes += indexCounts.size()*sizeof(IndexCount);
-		total_bytes += lookCounts.Size() * sizeof(IndexCount);
-		total_bytes += max_len * (band * sizeof(int) + sizeof(VectorInt));
-		total_bytes += max_len * (band * sizeof(int) + sizeof(VectorInt64));
-	}
+	int clstr_idx = (int)(cluster_thd * 100) - naa_stat_start_percent;
+	if (clstr_idx < 0) clstr_idx = 0;
+	double d2 = ((double)(naa_stat[tolerance - 1][clstr_idx][3])) / 100;
+	double dn = ((double)(naa_stat[tolerance - 1][clstr_idx][5 - NAA])) / 100;
+	aa2_cutoff = d2 > aa2_cutoff ? d2 : aa2_cutoff;
+	aan_cutoff = dn > aan_cutoff ? dn : aan_cutoff;
+	return;
+}
 
-	int EncodeWords(Sequence *seq, int NA, bool est = false);
-	void ComputeAAP(const char *seqi, int size);
-	void ComputeAAP2(const char *seqi, int size);
-};
-extern Vector<size_t> Comp_AAN_idx;
-extern ScoreMatrix mat;
-
-class SequenceDB
+void update_aax_cutoff(double& aa1_cutoff, double& aa2_cutoff, double& aan_cutoff, int tolerance, int naa_stat_start_percent, int naa_stat[5][61][4], int NAA, double cluster_thd)
 {
-public:
-	size_t NAAN;
-	Vector<Sequence *> sequences;
-	Vector<int> rep_seqs;
+	if (cluster_thd > 1.0) cluster_thd = 1.00;
 
-	long long total_letter;
-	long long total_desc;
-	size_t max_len;
-	size_t min_len;
-	size_t len_n50;
-
-	void Clear()
-	{
-		for (int i = 0; i < sequences.size(); i++)
-			delete sequences[i];
-		sequences.clear();
-		rep_seqs.clear();
-	}
-
-	SequenceDB()
-	{
-		total_letter = 0;
-		total_desc = 0;
-		min_len = 0;
-		max_len = 0;
-		len_n50 = 0;
-	}
-	~SequenceDB() { Clear(); }
-
-	void Read(const char *file);
-	void Readgz(string file);
-
-	void Read(const char *file, const char *file2);
-	void Readgz(string file, string file2);
-
-	void WriteClusters(const char *db, const char *newdb);
-	void WriteClustersgz(const char *db, const char *newdb);
-
-	void WriteClusters(const char *db, const char *db_pe, const char *newdb, const char *newdb_pe);
-	void WriteClustersgz(const char *db, const char *db_pe, const char *newdb, const char *newdb_pe);
-
-	void WriteExtra1D();
-	void WriteExtra2D(SequenceDB &other);
-	void DivideSave(const char *db, const char *newdb, int n);
-
-	void SwapIn(int seg, bool reponly = false);
-	void SwapOut(int seg);
-
-	// void Sort( int first, int last );
-	void SortDivide(bool sort = true);
-	void MakeWordTable();
-
-	size_t MinimalMemory(int frag_no, int bsize, int T, size_t extra = 0);
-
-	void ClusterOne(Sequence *seq, int id, WordTable &table,
-					WorkingParam &param, WorkingBuffer &buf);
-
-	// void SelfComparing( int start, int end, WordTable & table,
-	//     WorkingParam & param, WorkingBuffer & buf );
-
-	void ComputeDistance();
-	void DoClustering();
-	void DoClustering(int T);
-	void ClusterTo(SequenceDB &other);
-	int CheckOne(Sequence *seq, WordTable &tab, WorkingParam &par, WorkingBuffer &buf);
-	int CheckOneEST(Sequence *seq, WordTable &tab, WorkingParam &par, WorkingBuffer &buf);
-	int CheckOneAA(Sequence *seq, WordTable &tab, WorkingParam &par, WorkingBuffer &buf);
-};
-
-void bomb_error(const char *message);
-void bomb_error(const char *message, const char *message2);
-void bomb_warning(const char *message);
-void bomb_warning(const char *message, const char *message2);
-void format_seq(char *seq);
-int diag_test_aapn(int NAA1, char iseq2[], int len1, int len2,
-				   WorkingBuffer &buffer, int &best_sum,
-				   int band_width, int &band_left, int &band_center, int &band_right, int required_aa1);
-int diag_test_aapn_est(int NAA1, char iseq2[], int len1, int len2,
-					   WorkingBuffer &buffer, int &best_sum,
-					   int band_width, int &band_left, int &band_center, int &band_right, int required_aa1);
-int local_band_align(char query[], char ref[], int qlen, int rlen, ScoreMatrix &mat,
-					 int &best_score, int &iden_no, int &alnln, float &dist, unsigned int *alninfo,
-					 int band_left, int band_center, int band_right, WorkingBuffer &buffer);
-
-void strrev(const char *p);
-int print_usage(const char *arg);
-int print_usage_2d(const char *arg);
-int print_usage_est(const char *arg);
-int print_usage_div(const char *arg);
-int print_usage_est_2d(const char *arg);
-int print_usage_454(const char *arg);
-
-void cal_aax_cutoff(double &aa1_cutoff, double &aa2_cutoff, double &aan_cutoff,
-					double NR_clstr, int tolerance, int naa_stat_start_percent,
-					int naa_stat[5][61][4], int NAA);
-void update_aax_cutoff(double &aa1_cutoff, double &aa2_cutoff, double &aan_cutoff,
-					   int tolerance, int naa_stat_start_percent,
-					   int naa_stat[5][61][4], int NAA, int iden);
-
-int calc_ann_list(int len, char *seqi, int NAA, int &aan_no, Vector<int> &aan_list, Vector<INTs> &aan_list_no, bool est = false);
+	double aa1_t, aa2_t, aan_t;
+	cal_aax_cutoff(aa1_t, aa2_t, aan_t, cluster_thd, tolerance, naa_stat_start_percent,
+		naa_stat, NAA);
+	if (aa1_t > aa1_cutoff) aa1_cutoff = aa1_t;
+	if (aa2_t > aa2_cutoff) aa2_cutoff = aa2_t;
+	if (aan_t > aan_cutoff) aan_cutoff = aan_t;
+	return;
+}
 
 float current_time();
 
 // some functions from very old cd-hit
-int quick_sort_idx(int *a, int *idx, int lo0, int hi0);
-int quick_sort_idxr(int *a, int *idx, int lo0, int hi0);
 
 void setaa_to_na();
-void make_comp_short_word_index(size_t NAA);
-void make_comp_iseq(int len, char *iseq_comp, char *iseq);
+void make_comp_iseq(int len, char* iseq_comp, char* iseq);
+
+
+int calc_ann_list(int len, char* seqi, int NAA, int& aan_no, vector<int>& aan_list, vector<INTs>& aan_list_no, bool est)
+{
+	// check_aan_list
+	aan_no = len - NAA + 1;
+	for (auto j = 0; j < aan_no; j++) {
+		aan_list[j] = 0;
+		for (auto k = 0, k1 = NAA - 1; k < NAA; k++, k1--)
+			aan_list[j] += seqi[j + k] * NAAN_array[k1];
+	}
+	if (est) {
+		// for the short word containing 'N', mask it to '-1'
+		for (auto j = 0; j < len; j++) {
+			if (seqi[j] >= 4) {                      // here N is 4
+				auto i0 = (j - NAA + 1 > 0) ? j - NAA + 1 : 0;
+				auto i1 = j < aan_no ? j : aan_no - 1;
+				for (auto i = i0; i <= i1; i++)
+					aan_list[i] = -1;
+			}
+		}
+	}
+
+	std::sort(aan_list.begin(), aan_list.begin() + aan_no);
+	for (auto j = 0; j < aan_no; j++)
+		aan_list_no[j] = 1;
+	for (auto j = aan_no - 1; j; j--) {
+		if (aan_list[j] == aan_list[j - 1]) {
+			aan_list_no[j - 1] += aan_list_no[j];
+			aan_list_no[j] = 0;
+		}
+	}
+	return OK_FUNC;
+}
+
+
+void make_comp_short_word_index(int NAA, int* NAAN_array, vector<int>& Comp_AAN_idx) {
+	int i, j, k, icomp, k1;
+	int c[4] = { 3,2,1,0 };
+	unsigned char short_word[32]; //short_word[12] is enough
+
+	int NAA1 = NAAN_array[1];
+	int NAAN = NAAN_array[NAA];
+
+	for (i = 0; i < NAAN; i++) {
+		// decompose i back to short_word
+		for (k = i, j = 0; j < NAA; j++) {
+			short_word[j] = (unsigned char)(k % NAA1);
+			k = k / NAA1;
+		}
+
+		// calc_comp_aan_list
+		icomp = 0;
+		for (k = 0, k1 = NAA - 1; k < NAA; k++, k1--) icomp += c[short_word[k1]] * NAAN_array[k];
+
+		Comp_AAN_idx[i] = icomp;
+	}
+} // make_comp_short_word_index
+
+//quick_sort_idx calling (a, idx, 0, no-1)
+//sort a with another array idx
+//so that idx rearranged
+int quick_sort_idx(int* a, int* idx, int lo0, int hi0) {
+	int lo = lo0;
+	int hi = hi0;
+	int mid;
+	int tmp;
+
+	if (hi0 > lo0) {
+		mid = a[(lo0 + hi0) / 2];
+
+		while (lo <= hi) {
+			while ((lo < hi0) && (a[lo] < mid)) lo++;
+			while ((hi > lo0) && (a[hi] > mid)) hi--;
+			if (lo <= hi) {
+				tmp = a[lo];   a[lo] = a[hi];     a[hi] = tmp;
+				tmp = idx[lo]; idx[lo] = idx[hi]; idx[hi] = tmp;
+				lo++; hi--;
+			}
+		} // while
+
+		if (lo0 < hi) quick_sort_idx(a, idx, lo0, hi);
+		if (lo < hi0) quick_sort_idx(a, idx, lo, hi0);
+	} // if ( hi0 > lo0)
+	return 0;
+} // quick_sort_idx
+
+
+//decreasing can not use reverse of quick_sort_idx due to tie
+//quick_sort_idxr calling (a, idx, 0, no-1)
+//sort a with another array idx
+//so that idx rearranged
+int quick_sort_idxr(int* a, int* idx, int lo0, int hi0) {
+	int lo = lo0;
+	int hi = hi0;
+	int mid;
+	int tmp;
+
+	if (hi0 > lo0) {
+		mid = a[(lo0 + hi0) / 2];
+
+		while (lo <= hi) {
+			while ((lo < hi0) && (a[lo] > mid)) lo++;
+			while ((hi > lo0) && (a[hi] < mid)) hi--;
+			if (lo <= hi) {
+				tmp = a[lo];   a[lo] = a[hi];     a[hi] = tmp;
+				tmp = idx[lo]; idx[lo] = idx[hi]; idx[hi] = tmp;
+				lo++; hi--;
+			}
+		} // while
+
+		if (lo0 < hi) quick_sort_idxr(a, idx, lo0, hi);
+		if (lo < hi0) quick_sort_idxr(a, idx, lo, hi0);
+	} // if ( hi0 > lo0)
+	return 0;
+} // quick_sort_idxr
