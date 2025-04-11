@@ -2,10 +2,11 @@ export module ScoreMatrix;
 
 import std;
 
-export constexpr unsigned int MAX_AA{ 23 };
-export constexpr unsigned int MAX_SEQ{ 655360 };
+import common;
 
-constexpr int BLOSUM62[] = {
+constexpr std::size_t MAX_AA = 23;
+
+constexpr std::array BLOSUM62_PROTEIN{
 	4,                                                                  // A
    -1, 5,                                                               // R
    -2, 0, 6,                                                            // N
@@ -32,9 +33,10 @@ constexpr int BLOSUM62[] = {
   //A  R  N  D  C  Q  E  G  H  I  L  K  M  F  P  S  T  W  Y  V  B  Z  X
   //0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19  2  6 20
 };
-  
-  
-constexpr int BLOSUM62_na[] = {
+
+constexpr size_t MAX_NA  = 6;
+
+constexpr std::array BLOSUM62_DNA = {
 	2,                  // A
    -2, 2,               // C
    -2,-2, 2,            // G
@@ -46,54 +48,62 @@ constexpr int BLOSUM62_na[] = {
   //0  1  2  3  3  4  5
 };
 
-export class ScoreMatrix
-{
-private:
+export template <bool is_dna>
+class ScoreMatrix {
+    static consteval std::size_t get_max() { return is_dna ? MAX_NA : MAX_AA; }
+    static consteval std::size_t get_blosum_dim() { return is_dna ? BLOSUM62_DNA.size() : BLOSUM62_PROTEIN.size(); }
+    using matrix_t = std::array<std::array<int, get_blosum_dim()>, get_blosum_dim()>;
+    static consteval int get_static_gap() { return static_cast<int>(MAX_SEQ) * (is_dna ? -6 : -11); }
+    static consteval matrix_t get_first() {
+        matrix_t matrix{};
+        unsigned k = 0;
+        for (unsigned i = 0; i < MAX; i++)
+            // matrix is lower triangular
+            for (unsigned j = 0; j <= i; j++)
+                matrix[j][i] = matrix[i][j] = MAX_SEQ * (is_dna ? BLOSUM62_DNA[k++] : BLOSUM62_PROTEIN[k++]);
+        return matrix;
+    }
+
+    static constexpr std::size_t MAX = get_max();
+
+    // constexpr int ext_gap = -MAX_SEQ;
+    int gap = get_static_gap();
+    int extra_gap = 0;
+
 public:
-	int matrix[MAX_AA][MAX_AA];
-	int gap, ext_gap;
+    int get_gap() const { return gap; }
+    int get_extra_gap() const { return extra_gap; }
+    static matrix_t matrix;
 
-	ScoreMatrix()
-	{
-		set_gap(-11, -1);
-		set_matrix(BLOSUM62);
-	}
+    constexpr ScoreMatrix() {}
+    constexpr ScoreMatrix(bool is_est) {}
 
-	void set_gap(int gap1, int ext_gap1)
-	{
-		gap = MAX_SEQ * gap1;
-		ext_gap = MAX_SEQ * ext_gap1;
-	}
+    // Only for est
+    void set_match(int score) {
+        for (auto i = 0; i < 5; i++)
+            matrix[i][i] = MAX_SEQ * score;
+        // matrix[3][4] = matrix[4][3] = MAX_SEQ * score;
+    }
+    // Only for est
 
-	void set_matrix(const int* mat1)
-	{
-		unsigned k = 0;
-		for (unsigned i = 0; i < MAX_AA; i++)
-			for (unsigned j = 0; j <= i; j++)
-				matrix[j][i] = matrix[i][j] = MAX_SEQ * mat1[k++];
-	}
+    void set_mismatch(int score) {
+        for (unsigned i = 0; i < MAX_AA; i++)
+            for (unsigned j = 0; j < i; j++)
+                matrix[j][i] = matrix[i][j] = MAX_SEQ * score;
+        matrix[3][4] = matrix[4][3] = MAX_SEQ;
+    }
 
-	void set_to_na()
-	{
-		set_gap(-6, -1);
-		set_matrix(BLOSUM62_na);
-	}
-	// Only for est
-	void set_match(int score)
-	{
-		int i;
-		for (i = 0; i < 5; i++)
-			matrix[i][i] = MAX_SEQ * score;
-		// matrix[3][4] = matrix[4][3] = MAX_SEQ * score;
-	}
-	// Only for est
-	void set_mismatch(int score)
-	{
-		for (unsigned i = 0; i < MAX_AA; i++)
-			for (unsigned j = 0; j < i; j++)
-				matrix[j][i] = matrix[i][j] = MAX_SEQ * score;
-		matrix[3][4] = matrix[4][3] = MAX_SEQ;
-	}
+    void set_gaps(int _gap, int _extra_gap) {
+        gap = MAX_SEQ * _gap;
+        extra_gap = MAX_SEQ * _extra_gap;
+    }
 };
 
-export extern ScoreMatrix  mat;
+auto ScoreMatrix<true>::matrix = get_first();
+auto ScoreMatrix<false>::matrix = get_first();
+
+export ScoreMatrix<false> mat_aa{};
+export ScoreMatrix<true> mat_na{};
+
+// TODO: find usages and verify DNA/Protein usage
+export auto& mat = mat_na;

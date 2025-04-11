@@ -1,4 +1,4 @@
-option('openmp', type: 'boolean', value: true, description: 'Enable OpenMP support')
+option('openmp', type: 'boolean', value: false, description: 'Enable OpenMP support')
 option('zlib', type: 'boolean', value: true, description: 'Enable zlib support')
 option('static', type: 'boolean', value: true, description: 'Static linking support')
 option('MAX_SEQ', type: 'integer', value: 0, description: 'MAX SEQ length')

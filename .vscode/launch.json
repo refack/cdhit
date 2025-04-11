@@ -1,0 +1,27 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(Windows) Launch cd-hit-est.exe",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/buildvs/src/cd-hit-est.exe",
+            "args": [
+                "-i", "C:\\code\\1work\\CFF\\.outputs\\2025-03-25_15-50-21\\chopped_10.fasta",
+                "-o", "chopped_10.hit",
+                "-c", "0.9",
+                "-n", "5",
+                "-M", "0",
+                "-T", "8"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            // "console": "externalTerminal"
+        }
+
+    ]
+}

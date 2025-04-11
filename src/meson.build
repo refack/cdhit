@@ -1,19 +1,28 @@
 # Compiler and build options
 common_flags = []
+extra_defines = ['-DNO_OLDNAMES']
+ld_flags = []
 
 # Detect the compiler and set flags accordingly
 compiler = meson.get_compiler('cpp')
-
 if compiler.get_id() == 'gcc' or compiler.get_id() == 'clang'
-  extra_defines = ['-DNO_OLDNAMES']
-  openmp_flag = get_option('openmp') ? ['-fopenmp'] : ['-DNO_OPENMP']
-  zlib_link_flag = get_option('zlib') ? ['-lz'] : ['-DNO_ZLIB']
-  flag_prefix = '-'
+  if get_option('openmp')
+    extra_defines += ['-DOPENMP', '-fopenmp']
+  endif
+  if get_option('zlib')
+    ld_flags += ['-lz']
+  else
+    extra_defines += ['-DNO_ZLIB']
+  endif
 elif compiler.get_id() == 'msvc'
-  extra_defines = ['/DNO_OLDNAMES']
-  openmp_flag = get_option('openmp') ? ['/openmp'] : ['/DNO_OPENMP']
-  zlib_link_flag = get_option('zlib') ? ['zlib.lib'] : ['/DNO_ZLIB']
-  flag_prefix = '/'
+  extra_defines += [
+#    '/WL',                   # Enable one-line diagnostics
+    '/favor:INTEL64',        # Some special MSVC flags
+  ]
+  # extra_defines += ['/openmp']
+  if meson.backend() == 'ninja'
+    extra_defines += ['/reference', '"std=std.ifc"'] # Enable one-line diagnostics
+  endif
 else
   error('Unsupported compiler: ' + compiler.get_id())
 endif
@@ -21,46 +30,52 @@ endif
 # Handle the MAX_SEQ option
 max_seq_value = get_option('MAX_SEQ')
 if max_seq_value > 0
-  extra_defines += [flag_prefix + 'DMAX_SEQ=' + max_seq_value.to_string()]
+  extra_defines += ['-D_MAX_SEQ_=' + max_seq_value.to_string()]
 endif
+extra_defines += ['-D_MAX_UAA_=4']
 
-cc_flags = common_flags + openmp_flag + extra_defines
-add_project_arguments(cc_flags, language: 'cpp')
+cpp_flags = common_flags + extra_defines
+add_project_arguments(cpp_flags, language: 'cpp')
+add_project_link_arguments(ld_flags, language: 'cpp')
 
-deps = []
-if get_option('zlib')
-  # Fetch zlib dependency
-  deps += [dependency('zlib', required: get_option('zlib'), fallback: ['zlib', 'zlib_dep'])]
-endif
-
-
-# Linker flags
-link_static_flag = get_option('static') ? [flag_prefix + 'static'] : []
-ld_flags = zlib_link_flag + link_static_flag
+deps = [
+  dependency('zlib', static: get_option('static'), required: get_option('zlib')),
+]
+#include_directories: include_directories('./vcpkg_installed/x64-windows/include')
+add_project_dependencies(deps, language: 'cpp')
 
 src_dir = join_paths(meson.project_source_root(), 'src')
 message('Using source directory: ' + src_dir)
 
 # Common source files
-common_sources = [
-  join_paths(src_dir, 'lib', 'aligners.cpp'),
-  join_paths(src_dir, 'lib', 'cdhit-common.cpp'),
-  join_paths(src_dir, 'lib', 'cdhit-utility.cpp'),
+modules_sources = [
+  #
+  #  join_paths(src_dir, 'lib', 'std.ixx'),
+  #
+  join_paths(src_dir, 'lib', 'common.ixx'),
+  join_paths(src_dir, 'lib', 'gzfstream.ixx'),
   join_paths(src_dir, 'lib', 'Options.ixx'),
   join_paths(src_dir, 'lib', 'ScoreMatrix.ixx'),
+  join_paths(src_dir, 'lib', 'Sequance.ixx'),
   join_paths(src_dir, 'lib', 'SequanceDB.ixx'),
   join_paths(src_dir, 'lib', 'WordTable.ixx'),
   join_paths(src_dir, 'lib', 'WorkingBuffer.ixx'),
+  join_paths(src_dir, 'lib', 'WorkingParam.ixx'),
 ]
+if meson.backend() == 'ninja'
+  modules_sources += [join_paths(src_dir, 'microsoft', 'STL', 'std.ixx')]
+endif
+incs = include_directories('C:/bin/dev/Microsoft/VS2022Community/VC/Tools/MSVC/14.43.34808/modules')
+
 
 # Source files for executables
 sources = {
-  'cd-hit': join_paths(src_dir, 'cdhit.cpp'),
-  'cd-hit-2d': join_paths(src_dir, 'cdhit-2d.cpp'),
+  # 'cd-hit': join_paths(src_dir, 'cdhit.cpp'),
+  # 'cd-hit-2d': join_paths(src_dir, 'cdhit-2d.cpp'),
   'cd-hit-est': join_paths(src_dir, 'cdhit-est.cpp'),
-  'cd-hit-est-2d': join_paths(src_dir, 'cdhit-est-2d.cpp'),
-  'cd-hit-div': join_paths(src_dir, 'cdhit-div.cpp'),
-  'cd-hit-454': join_paths(src_dir, 'cdhit-454.cpp'),
+  # 'cd-hit-est-2d': join_paths(src_dir, 'cdhit-est-2d.cpp'),
+  # 'cd-hit-div': join_paths(src_dir, 'cdhit-div.cpp'),
+  # 'cd-hit-454': join_paths(src_dir, 'cdhit-454.cpp'),
 }
 
 # Build targets
@@ -68,11 +83,11 @@ executables = []
 foreach prog, src : sources
   exe = executable(
     prog,
-    files(common_sources, src),
+    files(modules_sources, src),
+    include_directories: incs,
     install: true,
-    link_args: ld_flags,
     install_dir: meson.project_source_root(),
-    dependencies: deps,
   )
+
   executables += exe
 endforeach

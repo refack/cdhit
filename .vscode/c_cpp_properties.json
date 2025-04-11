@@ -1,41 +1,20 @@
 {
     "configurations": [
         {
-            "name": "MinGW64",
-            "includePath": [
-                "${workspaceFolder}/**"
-            ],
-            "defines": [
-                "UNICODE",
-                "_UNICODE",
-                "NO_OLDNAMES",
-                "CDHIT_VERSION",
-            ],
-            "windowsSdkVersion": "10.0.26100.0",
-            "compilerPath": "C:\\bin\\tools\\scoop\\apps\\msys2\\current\\mingw64\\bin\\g++.exe",
-            "cStandard": "c23",
-            "cppStandard": "c++23",
-            "intelliSenseMode": "windows-gcc-x64",
-            "configurationProvider": "mesonbuild.mesonbuild"
-        },
-        {
             "name": "CL 64x64 shell",
-            "includePath": [
-                "${workspaceFolder}/src/**"
-            ],
-            "defines": [
-                "UNICODE",
-                "_UNICODE",
-                "NO_OLDNAMES",
-                "CDHIT_VERSION",
-            ],
-            "windowsSdkVersion": "10.0.26100.0",
-            "compilerPath": "C:\\bin\\dev\\Microsoft\\VS2022Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\cl.exe",
-            "cStandard": "c23",
-            "cppStandard": "c++23",
+            "configurationProvider": "mesonbuild.mesonbuild",
             "intelliSenseMode": "windows-msvc-x64",
-            "configurationProvider": "mesonbuild.mesonbuild"
-        },
+            "includePath": [
+                "${workspaceFolder}/src/**",
+                "C:\\bin\\dev\\Microsoft\\VS2022Community\\VC\\Tools\\MSVC\\14.43.34808\\ifc\\x64\\Debug"
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": "${workspaceFolder}\\.vs\\cdhit\\v17\\Browse.VC.db"
+            },
+            "mergeConfigurations": true,
+            "cppStandard": "c++23"
+        }
     ],
     "version": 4
 }

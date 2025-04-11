@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakePythonSetting">
+    <option name="pythonIntegrationState" value="YES" />
+  </component>
+  <component name="CidrRootsConfiguration">
+    <sourceRoots>
+      <file path="$PROJECT_DIR$/src" />
+      <file path="$PROJECT_DIR$/src/lib" />
+    </sourceRoots>
+    <libraryRoots>
+      <file path="$PROJECT_DIR$/src/microsoft/STL" />
+      <file path="$PROJECT_DIR$/vcpkg_installed/vcpkg/pkgs/zlib_x64-windows-static" />
+      <file path="$PROJECT_DIR$/vcpkg_installed/x64-windows-static" />
+      <file path="$PROJECT_DIR$/vcpkg_installed/x64-windows-static/include" />
+      <file path="$PROJECT_DIR$/vcpkg_installed/x64-windows-static/share" />
+      <file path="$PROJECT_DIR$/vcpkg_installed/x64-windows/share" />
+    </libraryRoots>
+    <excludeRoots>
+      <file path="$PROJECT_DIR$/.cache" />
+      <file path="$PROJECT_DIR$/.ctags.d" />
+      <file path="$PROJECT_DIR$/.vs" />
+      <file path="$PROJECT_DIR$/.vscode" />
+      <file path="$PROJECT_DIR$/Docker" />
+      <file path="$PROJECT_DIR$/buildvs" />
+      <file path="$PROJECT_DIR$/cd-hit-auxtools" />
+      <file path="$PROJECT_DIR$/doc" />
+      <file path="$PROJECT_DIR$/psi-cd-hit" />
+      <file path="$PROJECT_DIR$/reconfigure" />
+      <file path="$PROJECT_DIR$/scripts" />
+      <file path="$PROJECT_DIR$/tmp" />
+      <file path="$PROJECT_DIR$/upstream_master" />
+      <file path="$PROJECT_DIR$/usecases" />
+      <file path="$PROJECT_DIR$/vcpkg" />
+    </excludeRoots>
+  </component>
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
+  <component name="MesonSettings">
+    <option name="linkedExternalProjectsSettings">
+      <MesonProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$" />
+          </set>
+        </option>
+        <option name="profiles">
+          <MesonProfile>
+            <option name="buildDir" value="buildninja" />
+            <option name="mesonExecutable" value="C:\code\3party\meson\.venv\Scripts\meson.exe" />
+            <option name="setupOptions">
+              <list>
+                <option value="--backend" />
+                <option value="ninja" />
+                <option value="--native-file=vcpkg.ini" />
+              </list>
+            </option>
+            <option name="toolchainName" value="MSVC via ninja" />
+          </MesonProfile>
+        </option>
+      </MesonProjectSettings>
+    </option>
+  </component>
+  <component name="MesonWorkspace" PROJECT_DIR="$PROJECT_DIR$" />
+  <component name="WestSettings"><![CDATA[{}]]></component>
+</project>

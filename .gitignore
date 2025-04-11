@@ -8,3 +8,5 @@ subprojects/
 vcpkg_installed/
 vcpkg/
 zzz/
+upstream_master/
+/.cache/clangd/index

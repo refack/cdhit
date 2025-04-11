@@ -8,6 +8,7 @@ import common;
 import Options;
 import ScoreMatrix;
 import Sequence;
+import WorkingBuffer;
 import WordTable;
 import WorkingParam;
 import gzfstream;
@@ -61,9 +62,9 @@ struct std::formatter<tsv_view<T>> : std::range_formatter<typename T::value_type
 
 constexpr uint8_t get_naa_stat(size_t i, size_t j, size_t k);
 
-constexpr int calc_ann_list(const std::string_view seqi, size_t& aan_no, VectorInt& aan_list, VectorIntX& aan_list_no, bool est) {
+constexpr int calc_ann_list(int len, char* seqi, int& aan_no, std::vector<int>& aan_list, std::vector<INTs>& aan_list_no, bool est) {
     // check_aan_list
-    aan_no = seqi.size() - options.NAA + 1;
+    aan_no = len - options.NAA + 1;
     for (auto j = 0; j < aan_no; j++) {
         aan_list[j] = 0;
         for (size_t k = 0, k1 = options.NAA - 1; k < options.NAA; k++, k1--)
@@ -71,7 +72,7 @@ constexpr int calc_ann_list(const std::string_view seqi, size_t& aan_no, VectorI
     }
     if (est) {
         // for the short word containing 'N', mask it to '-1'
-        for (auto j = 0; j < seqi.size(); j++) {
+        for (auto j = 0; j < len; j++) {
             if (seqi[j] >= 4) { // here N is 4
                 auto i0 = (j - options.NAA + 1 > 0) ? j - options.NAA + 1 : 0;
                 auto i1 = j < aan_no ? j : aan_no - 1;
@@ -154,14 +155,20 @@ constexpr size_t MemoryLimit(const size_t mem_need) {
 ////index of diag_score = band+len1-1;
 int diag_test_aapn(int NAA1, char iseq2[], int len1, int len2, WorkingBuffer& buffer, int& best_sum, int band_width, int& band_left, int& band_center,
                    int& band_right, int required_aa1) {
-    int i1, j, k;
+    int i, i1, j, k;
+    int* pp;
     size_t nall = len1 + len2 - 1;
+    std::vector<int>& taap = buffer.taap;
+    std::vector<INTs>& aap_begin = buffer.aap_begin;
+    std::vector<INTs>& aap_list = buffer.aap_list;
+    std::vector<int>& diag_score = buffer.diag_score;
+    std::vector<int>& diag_score2 = buffer.diag_score2;
 
     if (nall > MAX_DIAG)
         throw std::invalid_argument("in diag_test_aapn, MAX_DIAG reached");
-    for (auto* pp = &buffer.diag_score[0], i = nall; i; i--, pp++)
+    for (pp = &diag_score[0], i = nall; i; i--, pp++)
         *pp = 0;
-    for (auto* pp = &buffer.diag_score2[0], i = nall; i; i--, pp++)
+    for (pp = &diag_score2[0], i = nall; i; i--, pp++)
         *pp = 0;
 
     int c22, cpx;
@@ -169,15 +176,15 @@ int diag_test_aapn(int NAA1, char iseq2[], int len1, int len2, WorkingBuffer& bu
     int len11 = len1 - 1;
     int len22 = len2 - 1;
     i1 = len11;
-    for (auto i = 0; i < len22; i++, i1++) {
+    for (i = 0; i < len22; i++, i1++) {
         c22 = iseq2[i] * NAA1 + iseq2[i + 1];
         cpx = 1 + (iseq2[i] != iseq2[i + 1]);
-        if ((j = buffer.taap[c22]) == 0)
+        if ((j = taap[c22]) == 0)
             continue;
-        int m = buffer.aap_begin[c22];
+        int m = aap_begin[c22];
         for (int k = 0; k < j; k++) {
-            buffer.diag_score[i1 - buffer.aap_list[m + k]]++;
-            buffer.diag_score2[i1 - buffer.aap_list[m + k]] += cpx;
+            diag_score[i1 - aap_list[m + k]]++;
+            diag_score2[i1 - aap_list[m + k]] += cpx;
         }
     }
 
@@ -192,11 +199,11 @@ int diag_test_aapn(int NAA1, char iseq2[], int len1, int len2, WorkingBuffer& bu
     // int max_diag(0);
     int max_diag2 = 0;
     int imax_diag = 0;
-    for (auto i = band_b; i <= band_m; i++) {
-        best_score += buffer.diag_score[i];
-        best_score2 += buffer.diag_score2[i];
-        if (buffer.diag_score2[i] > max_diag2) {
-            max_diag2 = buffer.diag_score2[i];
+    for (i = band_b; i <= band_m; i++) {
+        best_score += diag_score[i];
+        best_score2 += diag_score2[i];
+        if (diag_score2[i] > max_diag2) {
+            max_diag2 = diag_score2[i];
             // max_diag = diag_score[i];
             imax_diag = i;
         }
@@ -206,17 +213,17 @@ int diag_test_aapn(int NAA1, char iseq2[], int len1, int len2, WorkingBuffer& bu
     int score = best_score;
     int score2 = best_score2;
     for (k = from, j = band_m + 1; j < band_e; j++, k++) {
-        score -= buffer.diag_score[k];
-        score += buffer.diag_score[j];
-        score2 -= buffer.diag_score2[k];
-        score2 += buffer.diag_score2[j];
+        score -= diag_score[k];
+        score += diag_score[j];
+        score2 -= diag_score2[k];
+        score2 += diag_score2[j];
         if (score2 > best_score2) {
             from = k + 1;
             end = j;
             best_score = score;
             best_score2 = score2;
-            if (buffer.diag_score2[j] > max_diag2) {
-                max_diag2 = buffer.diag_score2[j];
+            if (diag_score2[j] > max_diag2) {
+                max_diag2 = diag_score2[j];
                 // max_diag = diag_score[j];
                 imax_diag = j;
             }
@@ -227,16 +234,16 @@ int diag_test_aapn(int NAA1, char iseq2[], int len1, int len2, WorkingBuffer& bu
         mlen = nall - imax_diag;
     int emax = int((1.0 - options.cluster_thd) * mlen) + 1;
     for (j = from; j < imax_diag; j++) { // if aap pairs fail to open gap
-        if ((imax_diag - j) > emax || buffer.diag_score[j] < 1) {
-            best_score -= buffer.diag_score[j];
+        if ((imax_diag - j) > emax || diag_score[j] < 1) {
+            best_score -= diag_score[j];
             from++;
         }
         else
             break;
     }
     for (j = end; j > imax_diag; j--) { // if aap pairs fail to open gap
-        if ((j - imax_diag) > emax || buffer.diag_score[j] < 1) {
-            best_score -= buffer.diag_score[j];
+        if ((j - imax_diag) > emax || diag_score[j] < 1) {
+            best_score -= diag_score[j];
             end--;
         }
         else
@@ -253,16 +260,22 @@ int diag_test_aapn(int NAA1, char iseq2[], int len1, int len2, WorkingBuffer& bu
 // END diag_test_aapn
 
 
-int diag_test_aapn_est(int NAA1, const char iseq2[], int len1, int len2, WorkingBuffer& buffer, int& best_sum, int band_width, int& band_left, int& band_center,
+int diag_test_aapn_est(int NAA1, char iseq2[], int len1, int len2, WorkingBuffer& buffer, int& best_sum, int band_width, int& band_left, int& band_center,
                        int& band_right, int required_aa1) {
+    int *pp, *pp2;
     size_t nall = len1 + len2 - 1;
     int NAA2 = NAA1 * NAA1;
     int NAA3 = NAA2 * NAA1;
+    const std::vector<int>& taap = buffer.taap;
+    std::vector<INTs>& aap_begin = buffer.aap_begin;
+    std::vector<INTs>& aap_list = buffer.aap_list;
+    std::vector<int>& diag_score = buffer.diag_score;
+    std::vector<int>& diag_score2 = buffer.diag_score2;
 
     if (nall > MAX_DIAG)
         throw std::invalid_argument("in diag_test_aapn_est, MAX_DIAG reached");
-    auto* pp = &buffer.diag_score[0];
-    auto* pp2 = &buffer.diag_score2[0];
+    pp = &diag_score[0];
+    pp2 = &diag_score2[0];
     for (auto i = nall; i; i--, pp++, pp2++)
         *pp = *pp2 = 0;
 
@@ -279,14 +292,14 @@ int diag_test_aapn_est(int NAA1, const char iseq2[], int len1, int len2, Working
             continue; // skip N
 
         c22 = c0 * NAA3 + c1 * NAA2 + c2 * NAA1 + c3;
-        auto j = buffer.taap[c22];
+        auto j = taap[c22];
         if (j == 0)
             continue;
         cpx = 1 + int(c0 != c1) + int(c1 != c2) + (c2 != c3);
-        bip = &buffer.aap_list[buffer.aap_begin[c22]]; //    bi = aap_begin[c22];
+        bip = &aap_list[aap_begin[c22]]; //    bi = aap_begin[c22];
         for (; j; j--, bip++) {
-            buffer.diag_score[i1 - *bip]++;
-            buffer.diag_score2[i1 - *bip] += cpx;
+            diag_score[i1 - *bip]++;
+            diag_score2[i1 - *bip] += cpx;
         }
     }
 #if 0
@@ -324,10 +337,10 @@ int diag_test_aapn_est(int NAA1, const char iseq2[], int len1, int len2, Working
     int max_diag2 = 0;
     int imax_diag = 0;
     for (auto i = band_b; i <= band_m; i++) {
-        best_score += buffer.diag_score[i];
-        best_score2 += buffer.diag_score2[i];
-        if (buffer.diag_score2[i] > max_diag2) {
-            max_diag2 = buffer.diag_score2[i];
+        best_score += diag_score[i];
+        best_score2 += diag_score2[i];
+        if (diag_score2[i] > max_diag2) {
+            max_diag2 = diag_score2[i];
             // max_diag = diag_score[i];
             imax_diag = i;
         }
@@ -338,17 +351,17 @@ int diag_test_aapn_est(int NAA1, const char iseq2[], int len1, int len2, Working
     int score2 = best_score2;
 
     for (size_t k = from, j = band_m + 1; j < band_e; j++, k++) {
-        score -= buffer.diag_score[k];
-        score += buffer.diag_score[j];
-        score2 -= buffer.diag_score2[k];
-        score2 += buffer.diag_score2[j];
+        score -= diag_score[k];
+        score += diag_score[j];
+        score2 -= diag_score2[k];
+        score2 += diag_score2[j];
         if (score2 > best_score2) {
             from = k + 1;
             end = j;
             best_score = score;
             best_score2 = score2;
-            if (buffer.diag_score2[j] > max_diag2) {
-                max_diag2 = buffer.diag_score2[j];
+            if (diag_score2[j] > max_diag2) {
+                max_diag2 = diag_score2[j];
                 // max_diag = diag_score[j];
                 imax_diag = j;
             }
@@ -365,16 +378,16 @@ int diag_test_aapn_est(int NAA1, const char iseq2[], int len1, int len2, Working
         mlen = nall - imax_diag;
     int emax = int((1.0 - options.cluster_thd) * mlen) + 1;
     for (auto j = from; j < imax_diag; j++) { // if aap pairs fail to open gap
-        if ((imax_diag - j) > emax || buffer.diag_score[j] < 1) {
-            best_score -= buffer.diag_score[j];
+        if ((imax_diag - j) > emax || diag_score[j] < 1) {
+            best_score -= diag_score[j];
             from++;
         }
         else
             break;
     }
     for (auto j = end; j > imax_diag; j--) { // if aap pairs fail to open gap
-        if ((j - imax_diag) > emax || buffer.diag_score[j] < 1) {
-            best_score -= buffer.diag_score[j];
+        if ((j - imax_diag) > emax || diag_score[j] < 1) {
+            best_score -= diag_score[j];
             end--;
         }
         else
@@ -436,7 +449,8 @@ mat is matrix, return ALN_PAIR class
 
 */
 
-int local_band_align(const char iseq1[], const char iseq2[], int ilen1, int ilen2, int& best_score, int& iden_no, int& alnln, float& dist, unsigned int* alninfo, int band_left, int band_center, int band_right, WorkingBuffer& buffer) {
+int local_band_align(char iseq1[], char iseq2[], int ilen1, int ilen2, ScoreMatrix& mat, int& best_score, int& iden_no, int& alnln, float& dist,
+                     unsigned int* alninfo, int band_left, int band_center, int band_right, WorkingBuffer& buffer) {
     size_t best_score1;
     iden_no = 0;
 
@@ -467,10 +481,10 @@ int local_band_align(const char iseq1[], const char iseq2[], int ilen1, int ilen
         }
     }
     for (size_t i = 0; i <= len1; i++) {
-        if (score_mat[i].size() < band_width1)
-            score_mat[i].resize(band_width1);
-        if (back_mat[i].size() < band_width1)
-            back_mat[i].resize(band_width1);
+        if (score_mat[i].Size() < band_width1)
+            score_mat[i].Resize(band_width1);
+        if (back_mat[i].Size() < band_width1)
+            back_mat[i].Resize(band_width1);
     }
 
     best_score = 0;
@@ -502,7 +516,7 @@ int local_band_align(const char iseq1[], const char iseq2[], int ilen1, int ilen
             auto j1 = k - band_left;
             // penalty for leading gap opening = penalty for gap extension
             // each of the left side query hunging residues give ext_gap (-1)
-            score_mat[i][j1] = mat.get_extra_gap() * i;
+            score_mat[i][j1] = mat.ext_gap * i;
             back_mat[i][j1] = DP_BACK_TOP;
         }
         back_mat[-tband][tband - band_left] = DP_BACK_NONE;
@@ -512,13 +526,13 @@ int local_band_align(const char iseq1[], const char iseq2[], int ilen1, int ilen
         size_t tband = (band_left > 0) ? band_left : 0;
         for (size_t j = tband; j <= band_right; j++) {
             size_t j1 = j - band_left;
-            score_mat[0][j1] = mat.get_extra_gap() * j;
+            score_mat[0][j1] = mat.ext_gap * j;
             back_mat[0][j1] = DP_BACK_LEFT;
         }
         back_mat[0][tband - band_left] = DP_BACK_NONE;
     }
 
-    int gap_open[2] = {mat.get_gap(), mat.get_extra_gap()};
+    int gap_open[2] = {mat.gap, mat.ext_gap};
     int max_diag = band_center - band_left;
     int extra_score[4] = {4, 3, 2, 1};
     for (size_t i = 1; i <= len1; i++) {
@@ -547,7 +561,7 @@ int local_band_align(const char iseq1[], const char iseq2[], int ilen1, int ilen
             if (j1 > 0) {
                 int gap = gap0;
                 if (back_mat[i][j1 - 1] == DP_BACK_LEFT)
-                    gap = mat.get_extra_gap();
+                    gap = mat.ext_gap;
                 size_t score = score_mat[i][j1 - 1] + gap;
                 if (score > best_score1) {
                     back = DP_BACK_LEFT;
@@ -557,7 +571,7 @@ int local_band_align(const char iseq1[], const char iseq2[], int ilen1, int ilen
             if (j1 + 1 < band_width) {
                 int gap = gap0;
                 if (back_mat[i - 1][j1 + 1] == DP_BACK_TOP)
-                    gap = mat.get_extra_gap();
+                    gap = mat.ext_gap;
                 size_t score = score_mat[i - 1][j1 + 1] + gap;
                 if (score > best_score1) {
                     back = DP_BACK_TOP;
@@ -931,14 +945,12 @@ constexpr auto copy_sequence_chunked(std::istream& fin, std::ostream& fout, size
 }
 
 typedef std::vector<Sequence> seqvec;
-static_assert(std::movable<Sequence>);
-
 export class SequenceDB {
 public:
     size_t NAAN = 0;
-    std::vector<Sequence> sequences;
+    seqvec sequences;
     std::vector<size_t> rep_seqs;
-    std::map<size_t, std::vector<Sequence>> clusters;
+    std::map<size_t, seqvec> clusters;
 
     size_t total_letter = 0;
     size_t total_desc = 0;
@@ -978,8 +990,12 @@ public:
         if (not options.isEST)
             cal_aax_cutoff(aa1_cutoff, aas_cutoff, aan_cutoff, options.cluster_thd, options.tolerance);
 
-        std::vector params{T, WorkingParam(aa1_cutoff, aas_cutoff, aan_cutoff)};
-        std::vector buffers(T, WorkingBuffer(frag_no, max_len));
+        std::vector<WorkingParam> params(T);
+        std::vector<WorkingBuffer> buffers(T);
+        for (i = 0; i < T; i++) {
+            params[i] = WorkingParam(aa1_cutoff, aas_cutoff, aan_cutoff);
+            buffers[i].Set(frag_no, max_len);
+        }
 
         // word_table as self comparing table and table buffer:
         WordTable word_table(options.NAA, NAAN);
@@ -1164,25 +1180,33 @@ public:
     }
 
 
-    static int CheckOneAA(Sequence& seq, WordTable& table, WorkingParam& param, WorkingBuffer& buf) {
-        auto aa1_cutoff = param.aa1_cutoff;
-        auto aa2_cutoff = param.aas_cutoff;
-        auto aan_cutoff = param.aan_cutoff;
+    static int CheckOneAA(Sequence* seq, WordTable& table, WorkingParam& param, WorkingBuffer& buf) {
+        NVectorIndexCount& lookCounts = buf.lookCounts;
+        VectorInt32& indexMapping = buf.indexMapping;
+        std::vector<INTs>& word_encodes_no = buf.word_encodes_no;
+        // std::vector<INTs> & aap_list = buf.aap_list;
+        // std::vector<INTs> & aap_begin = buf.aap_begin;
+        std::vector<int>& word_encodes = buf.word_encodes;
+        // std::vector<int>  & taap = buf.taap;
+        double aa1_cutoff = param.aa1_cutoff;
+        double aa2_cutoff = param.aas_cutoff;
+        double aan_cutoff = param.aan_cutoff;
 
-        const auto& seqi = seq.get_data();
-        auto flag = false;
-        auto frag_size = options.frag_size;
+        char* seqi = seq.data;
+        unsigned int len = seq.size;
+        int flag = 0;
+        int frag_size = options.frag_size;
 
-        auto S = table.sequences.size();
-        auto len_eff = seqi.size();
+        int S = table.sequences.size();
+        int len_eff = len;
 
         if (S) {
             unsigned int min = table.sequences[S - 1]->size;
-            if (min < seqi.size()) {
-                if (seqi.size() * options.diff_cutoff2 > min)
-                    min = (int)(seqi.size() * options.diff_cutoff2);
-                if ((seqi.size() - options.diff_cutoff_aa2) > min)
-                    min = seqi.size() - options.diff_cutoff_aa2;
+            if (min < len) {
+                if (len * options.diff_cutoff2 > min)
+                    min = (int)(len * options.diff_cutoff2);
+                if ((len - options.diff_cutoff_aa2) > min)
+                    min = len - options.diff_cutoff_aa2;
                 len_eff = min;
             }
         }
@@ -1192,7 +1216,8 @@ public:
         if (S) {
             auto cov_size = static_cast<unsigned int>(options.long_coverage * table.sequences[S - 1]->size);
             unsigned int min_red = std::min(cov_size - options.band_width, 0u);
-            if (seqi.size() < min_red)
+            if (len < min_red)
+                // return flag=0
                 return 0;
         }
 
@@ -1203,13 +1228,13 @@ public:
 
         // if minimal alignment length > len, return
         // I can not return earlier, because I need to calc the word_encodes etc
-        if (options.min_control > seqi.size())
-            return 0;
+        if (options.min_control > len)
+            return 0; // return flag=0
 
         // lookup_aan
-        int aan_no = seqi.size() - options.NAA + 1;
+        int aan_no = len - options.NAA + 1;
         // int M = frag_size ? table.frag_count : S;
-        table.CountWords(aan_no, buf, false, param.required_aan);
+        table.CountWords(aan_no, word_encodes, word_encodes_no, lookCounts, indexMapping, false, param.required_aan);
 
         // contained_in_old_lib()
         unsigned int len_upper_bound = param.len_upper_bound;
@@ -1217,40 +1242,42 @@ public:
         int band_left, band_right, best_score, best_sum, alnln;
         int tiden_no, band_center;
         float distance = 0;
-        int frg2 = frag_size ? (seqi.size() - options.NAA + options.band_width) / frag_size + 1 + 1 : 0;
+        int frg2 = frag_size ? (len - options.NAA + options.band_width) / frag_size + 1 + 1 : 0;
         int has_aa2 = 0;
 
-        for (auto& ic : buf.lookCounts) {
+        const IndexCount* ici = lookCounts.items;
+
+        for (auto ic = lookCounts.items; ic->count; ic++) {
             unsigned int talign_info[5];
             if (!frag_size) {
-                buf.indexMapping[ic.index] = 0;
-                if (ic.count < param.required_aan)
+                indexMapping[ic->index] = 0;
+                if (ic->count < param.required_aan)
                     continue;
             }
 
-            Sequence* rep = table.sequences[ic.index];
+            Sequence* rep = table.sequences[ic->index];
             auto len2 = rep->size;
             if (len2 > len_upper_bound)
                 continue;
             if (options.has2D && len2 < len_lower_bound)
                 continue;
             if (frag_size) {
-                auto* ims = &buf.indexMapping[ic.index];
+                auto* ims = &indexMapping[ic->index];
                 auto k = (len2 - options.NAA) / frag_size + 1;
                 auto sum = 0;
                 for (auto j1 = 0; j1 < frg2; j1++) {
                     auto im = ims[j1];
                     if (im)
-                        sum += buf.lookCounts[im - 1].count;
+                        sum += lookCounts[im - 1].count;
                 }
                 auto count = sum;
                 for (auto j1 = frg2; j1 < k; j1++) {
                     auto im1 = ims[j1];
                     auto im2 = ims[j1 - frg2];
                     if (im1)
-                        sum += buf.lookCounts[im1 - 1].count;
+                        sum += lookCounts[im1 - 1].count;
                     if (im2)
-                        sum -= buf.lookCounts[im2 - 1].count;
+                        sum -= lookCounts[im2 - 1].count;
                     if (sum > count)
                         count = sum;
                 }
@@ -1261,11 +1288,11 @@ public:
             param.ControlLongCoverage(len2);
 
             if (has_aa2 == 0) { // calculate AAP array
-                buf.ComputeAAP(seqi);
+                buf.ComputeAAP(seqi, seq.size);
                 has_aa2 = 1;
             }
-            auto* seqj = rep->data; // NR_seq[NR90_idx[j]];
-            const auto len = seq.size;
+            auto seqj = rep->data; // NR_seq[NR90_idx[j]];
+
             int band_width1 = (options.band_width < len + len2 - 2) ? options.band_width : len + len2 - 2;
             diag_test_aapn(NAA1, seqj, len, len2, buf, best_sum, band_width1, band_left, band_center, band_right, param.required_aa1);
             if (best_sum < param.required_aas)
@@ -1273,9 +1300,9 @@ public:
 
             int rc = FAILED_FUNC;
             if (options.print || param.aln_cover_flag) // return overlap region
-                rc = local_band_align(seqi.data(), seqj, len, len2, best_score, tiden_no, alnln, distance, talign_info, band_left, band_center, band_right, buf);
+                rc = local_band_align(seqi, seqj, len, len2, mat, best_score, tiden_no, alnln, distance, talign_info, band_left, band_center, band_right, buf);
             else
-                rc = local_band_align(seqi.data(), seqj, len, len2, best_score, tiden_no, alnln, distance, talign_info, band_left, band_center, band_right, buf);
+                rc = local_band_align(seqi, seqj, len, len2, mat, best_score, tiden_no, alnln, distance, talign_info, band_left, band_center, band_right, buf);
             if (rc == FAILED_FUNC)
                 continue;
             if (tiden_no < param.required_aa1)
@@ -1305,8 +1332,7 @@ public:
             }
             if (options.has2D)
                 seq.state |= seq_state::IS_REDUNDANT;
-            // Todo: why do we flag?
-            flag = true;
+            flag = 1;
             seq.identity = tiden_pc;
             seq.cluster_id = rep->cluster_id;
             seq.distance = distance;
@@ -1319,14 +1345,17 @@ public:
             update_aax_cutoff(aa1_cutoff, aa2_cutoff, aan_cutoff, options.tolerance, tiden_pc);
             param.ComputeRequiredBases(options.NAA, 2);
 
+            ici = ic;
         }
-        auto ic = buf.lookCounts.end();
+        auto ic = ici;
         if (frag_size)
-            ic = buf.lookCounts.begin();
-        for (;ic != buf.lookCounts.end(); ++ic)
-            buf.indexMapping[ic->index] = 0;
-        buf.lookCounts.clear();
-        if (flag) { // if similar to old one delete it
+            ic = lookCounts.items;
+        while (ic->count) {
+            indexMapping[ic->index] = 0;
+            ic += 1;
+        }
+        lookCounts.size = 0;
+        if (flag == 1) { // if similar to old one delete it
             if (!options.cluster_best) {
                 seq.Clear();
                 seq.state |= seq_state::IS_REDUNDANT;
@@ -1337,6 +1366,14 @@ public:
 
 
     static int CheckOneEST(Sequence& seq, WordTable& table, WorkingParam& param, WorkingBuffer& buf) {
+        NVector<IndexCount>& lookCounts = buf.lookCounts;
+        VectorInt32& indexMapping = buf.indexMapping;
+        std::vector<INTs>& word_encodes_no = buf.word_encodes_no;
+        // std::vector<INTs> & aap_list = buf.aap_list;
+        // std::vector<INTs> & aap_begin = buf.aap_begin;
+        std::vector<int>& word_encodes = buf.word_encodes;
+        // std::vector<int>  & taap = buf.taap;
+        std::vector<int>& aan_list_comp = buf.aan_list_comp;
         char* seqi_comp = &buf.seqi_comp[0];
 
         char* seqi = seq.data;
@@ -1391,11 +1428,11 @@ public:
         for (auto comp = 0; comp < 2; comp++) {
             if (comp) {
                 for (auto j0 = 0; j0 < aan_no; j0++) {
-                    auto j = buf.word_encodes[j0];
+                    auto j = word_encodes[j0];
                     if (j < 0)
-                        buf.aan_list_comp[j0] = j;
+                        aan_list_comp[j0] = j;
                     else
-                        buf.aan_list_comp[j0] = Comp_AAN_idx[j];
+                        aan_list_comp[j0] = Comp_AAN_idx[j];
                 }
 
                 make_comp_iseq(len, seqi_comp, seqi);
@@ -1404,15 +1441,16 @@ public:
             int has_aas = 0;
 
             if (comp) {
-                table.CountWords(aan_no, buf, true, param.required_aan);
+                table.CountWords(aan_no, aan_list_comp, word_encodes_no, lookCounts, indexMapping, true, param.required_aan);
             }
             else {
-                table.CountWords(aan_no, buf, true, param.required_aan);
+                table.CountWords(aan_no, word_encodes, word_encodes_no, lookCounts, indexMapping, true, param.required_aan);
             }
 
-            auto ic = buf.lookCounts.begin();
+            IndexCount* ic = lookCounts.items;
+            ic = lookCounts.items;
             for (; ic->count; ic++) {
-                buf.indexMapping[ic->index] = 0;
+                indexMapping[ic->index] = 0;
                 if (ic->count < param.required_aan)
                     continue;
                 Sequence* rep = table.sequences[ic->index];
@@ -1423,17 +1461,17 @@ public:
                 if (options.has2D && len2 < len_lower_bound)
                     continue;
 
-                auto seqj = rep->get_data();
+                auto seqj = rep->data;
 
                 param.ControlLongCoverage(len2);
 
                 if (has_aas == 0) { // calculate AAP array
-                    buf.ComputeAAP2(seqj);
+                    buf.ComputeAAP2(seqi, seq.size);
                     has_aas = 1;
                 }
 
                 auto band_width1 = (options.band_width < len + len2 - 2) ? options.band_width : len + len2 - 2;
-                diag_test_aapn_est(NAA1, seqj.data(), len, len2, buf, best_sum, band_width1, band_left, band_center, band_right, param.required_aa1);
+                diag_test_aapn_est(NAA1, seqj, len, len2, buf, best_sum, band_width1, band_left, band_center, band_right, param.required_aa1);
                 if (best_sum < param.required_aas)
                     continue;
                 // if( comp and flag and (not options.cluster_best) and j > rep->cluster_id ) goto Break;
@@ -1441,7 +1479,7 @@ public:
                 int rc = FAILED_FUNC;
                 if (options.print || param.aln_cover_flag) { // return overlap region
                     rc = local_band_align(
-                        seqi, seqj.data(), len, len2, best_score, tiden_no, alnln, distance, talign_info, band_left, band_center, band_right, buf);
+                        seqi, seqj, len, len2, mat, best_score, tiden_no, alnln, distance, talign_info, band_left, band_center, band_right, buf);
                     if (comp) {
                         talign_info[0] = len - talign_info[0] - 1;
                         talign_info[1] = len - talign_info[1] - 1;
@@ -1450,7 +1488,7 @@ public:
                 else {
                     // printf( "%5i %5i %5i %5i\n", band_width1, band_right-band_left, band_left, band_right );
                     rc = local_band_align(
-                        seqi, seqj.data(), len, len2, best_score, tiden_no, alnln, distance, talign_info, band_left, band_center, band_right, buf);
+                        seqi, seqj, len, len2, mat, best_score, tiden_no, alnln, distance, talign_info, band_left, band_center, band_right, buf);
                 }
                 if (rc == FAILED_FUNC)
                     continue;
@@ -1496,7 +1534,7 @@ public:
                             continue;
                     }
                 }
-                if (options.cluster_best and std::fabs(tiden_pc - seq.identity) < 1E-9 and rep->cluster_id >= seq.cluster_id)
+                if (options.cluster_best and fabs(tiden_pc - seq.identity) < 1E-9 and rep->cluster_id >= seq.cluster_id)
                     continue;
                 if ((not options.cluster_best) and flag != 0 and rep->cluster_id >= seq.cluster_id)
                     continue;
@@ -1512,10 +1550,10 @@ public:
                     break;
             }
             while (ic->count) {
-                buf.indexMapping[ic->index] = 0;
+                indexMapping[ic->index] = 0;
                 ic += 1;
             }
-            buf.lookCounts.clear();
+            lookCounts.size = 0;
             if (not options.option_r)
                 break;
         }
@@ -1548,20 +1586,20 @@ public:
         for (unsigned int i = 0; i < N; i++) {
             unsigned int talign_info[5];
             const Sequence& seq = sequences[i];
-            const auto seqi = seq.get_data();
+            char* seqi = seq.data;
             unsigned int len = seq.size;
             buf.EncodeWords(seq, options.NAA, false);
-            buf.ComputeAAP2(seqi);
+            buf.ComputeAAP2(seqi, seq.size);
             dists[i][i] = 0.0;
             if ((i + 1) % 1000 == 0)
                 printf("%9i\n", (i + 1));
             for (unsigned int j = 0; j < i; j++) {
                 const Sequence& rep = sequences[j];
-                const char* rep_data = rep.get_data().data();
+                char* seqj = rep.data;
                 unsigned int len2 = rep.size;
                 band_width1 = (options.band_width < len + len2 - 2) ? options.band_width : len + len2 - 2;
-                diag_test_aapn_est(NAA1, rep_data, len, len2, buf, best_sum, band_width1, band_left, band_center, band_right, 0);
-                local_band_align(seqi.data(), rep_data, len, len2, best_score, tiden_no, alnln, distance, talign_info, band_left, band_center, band_right, buf);
+                diag_test_aapn_est(NAA1, seqj, len, len2, buf, best_sum, band_width1, band_left, band_center, band_right, 0);
+                local_band_align(seqi, seqj, len, len2, mat, best_score, tiden_no, alnln, distance, talign_info, band_left, band_center, band_right, buf);
                 dists[seq.index][rep.index] = dists[rep.index][seq.index] = distance;
             }
             if (not options.option_r)
@@ -1569,17 +1607,17 @@ public:
             comseq.index = seq.index;
             comseq.size = len;
             for (unsigned int j = 0; j < len; j++)
-                comseq.data[i] = seq.get_data().data()[len - i - 1];
-            const auto seqi1 = comseq.data;
+                comseq.data[i] = seq.data[len - i - 1];
+            seqi = comseq.data;
             buf.EncodeWords(comseq, options.NAA, false);
-            buf.ComputeAAP2({seqi1, seq.size});
+            buf.ComputeAAP2(seqi, seq.size);
             for (unsigned int j = 0; j < i; j++) {
                 const Sequence& rep = sequences[j];
-                const char* seqj = rep.get_data().data();
+                char* seqj = rep.data;
                 unsigned int len2 = rep.size;
                 band_width1 = (options.band_width < len + len2 - 2) ? options.band_width : len + len2 - 2;
                 diag_test_aapn_est(NAA1, seqj, len, len2, buf, best_sum, band_width1, band_left, band_center, band_right, 0);
-                local_band_align(seqi1, seqj, len, len2, best_score, tiden_no, alnln, distance, talign_info, band_left, band_center, band_right, buf);
+                local_band_align(seqi, seqj, len, len2, mat, best_score, tiden_no, alnln, distance, talign_info, band_left, band_center, band_right, buf);
                 if (distance < dists[seq.index][rep.index])
                     dists[seq.index][rep.index] = dists[rep.index][seq.index] = distance;
             }
@@ -1717,23 +1755,29 @@ public:
     }
 
     void ClusterTo(SequenceDB& other) {
+        int flag;
+        int len, len_tmp, len_lower_bound, len_upper_bound;
+        int NR2_red_no = 0;
+        int aan_no = 0;
+        char* seqi;
         double aa1_cutoff = options.cluster_thd;
         double aas_cutoff = 1 - (1 - options.cluster_thd) * 4;
         double aan_cutoff = 1 - (1 - options.cluster_thd) * options.NAA;
-        VectorInt word_encodes(MAX_SEQ);
-        VectorIntX word_encodes_no(MAX_SEQ);
+        std::vector<int> word_encodes(MAX_SEQ);
+        std::vector<INTs> word_encodes_no(MAX_SEQ);
 
         if (not options.isEST) {
             cal_aax_cutoff(aa1_cutoff, aas_cutoff, aan_cutoff, options.cluster_thd, options.tolerance);
         }
 
-        auto N = other.sequences.size();
-        auto M = sequences.size();
-        auto T = options.threads;
+        int N = other.sequences.size();
+        int M = sequences.size();
+        int T = options.threads;
 
         std::valarray<size_t> counts(T);
         std::vector<WorkingParam> params(T);
         std::vector<WorkingBuffer> buffers(T);
+        WorkingParam& param = params[0];
         WorkingBuffer& buffer = buffers[0];
         for (auto i = 0; i < T; i++) {
             params[i] = WorkingParam(aa1_cutoff, aas_cutoff, aan_cutoff);
@@ -1751,11 +1795,10 @@ public:
 
         size_t max_items = options.max_entries;
         size_t max_seqs = options.max_sequences;
-        size_t NR2_red_no = 0;
-        for (size_t i = 0; i < N;) {
+        for (auto i = 0; i < N;) {
             size_t items = 0;
             size_t sum = 0;
-            size_t m = i;
+            int m = i;
             while (m < N && sum < max_seqs && items < max_items) {
                 Sequence& seq = other.sequences[m];
                 if (!(seq.state & seq_state::IS_REDUNDANT)) {
@@ -1767,10 +1810,10 @@ public:
             m = std::min(m, N);
             for (size_t ks = i; ks < m; ks++) {
                 Sequence& seq = other.sequences[ks];
-                size_t out_ann_no = 0;
-                calc_ann_list(seq.get_data(), out_ann_no, word_encodes, word_encodes_no, options.isEST);
-                word_table.AddWordCounts(out_ann_no, word_encodes, word_encodes_no, ks - i);
-                word_table.sequences.push_back(&seq);
+                len = seq.size;
+                calc_ann_list(len, seq.data, aan_no, word_encodes, word_encodes_no, options.isEST);
+                word_table.AddWordCounts(aan_no, word_encodes, word_encodes_no, ks - i, options.isEST);
+                word_table.sequences.push_back(seq);
 
                 set_representative(ks, seq);
 
@@ -1781,8 +1824,8 @@ public:
                         std::println("{:9}  finished", ks1);
                 }
             }
-            double p0 = 0.0;
-            auto JM = M;
+            float p0 = 0;
+            int JM = M;
             counts = 0;
             // #pragma omp parallel for schedule( dynamic, 1 )
             for (int j = 0; j < JM; j++) {
@@ -1794,12 +1837,12 @@ public:
                 params[tid].len_upper_bound = upper_bound_length_rep(seq.size);
                 params[tid].len_lower_bound = std::min<size_t>(seq.cutoff2_len(), seq.size - options.diff_cutoff_aa2);
 
-                if (word_table.sequences[word_table.sequences.size() - 1]->size > params[tid].len_upper_bound) {
+                if (word_table.sequences[word_table.sequences.size() - 1].size > params[tid].len_upper_bound) {
                     JM = 0;
                     continue;
                 }
 
-                auto flag = other.CheckOne(seq, word_table, params[tid], buffers[tid]);
+                int flag = other.CheckOne(seq, word_table, params[tid], buffers[tid]);
                 if ((flag == 1) || (flag == -1)) { // if similar to old one delete it
                     if (!options.cluster_best) {
                         seq.Clear();
@@ -1809,7 +1852,7 @@ public:
                     if (flag == -1)
                         seq.state |= seq_state::IS_MINUS_STRAND; // for EST only
                 }
-                auto p = (100.0 * j) / M;
+                float p = (100.0 * j) / M;
                 if (p > p0 + 1E-1) { // print only if the percentage changed
                     std::cout << '\r' << std::fixed << std::setprecision(1) << std::setw(4) << p << '%' << std::flush;
                     p0 = p;
@@ -1817,14 +1860,15 @@ public:
             }
             for (int j = 0; j < T; j++)
                 NR2_red_no += counts[j];
-            std::println("\r..........{:9}  compared  {:9}  clusters", i, NR2_red_no);
+            printf("\r..........%9i  compared  %9i  clusters\n", i, NR2_red_no);
             word_table.Clear();
             word_table.size = 0;
             i = m;
         }
 
         if (options.cluster_best) { // delete redundant sequences in options.cluster_best mode
-            for (auto& seq : sequences) {
+            for (auto i = 0; i < sequences.size(); i++) {
+                Sequence& seq = sequences[i];
                 if (seq.identity > 0) {
                     seq.state |= seq_state::IS_REDUNDANT;
                     NR2_red_no++;
@@ -1880,18 +1924,18 @@ public:
 
                 /* not used for EST */
                 if (options.frag_size) {
-                    size_t num_frags = len_nna / options.frag_size + 1;
-                    table.AddWordCountsFrag(aan_no, buffer.word_encodes_backup, buffer.word_encodes_no, num_frags);
+                    size_t frg1 = len_nna / options.frag_size + 1;
+                    table.AddWordCountsFrag(aan_no, buffer.word_encodes_backup, buffer.word_encodes_no, frg1, options.frag_size);
                 }
                 else {
-                    table.AddWordCounts(aan_no, buffer.word_encodes, buffer.word_encodes_no, table.sequences.size());
+                    table.AddWordCounts(aan_no, buffer.word_encodes, buffer.word_encodes_no, table.sequences.size(), options.isEST);
                 }
 
-                table.sequences.emplace_back(&seq);
+                table.sequences.emplace_back(seq);
 
                 if (options.frag_size) {
                     while (table.sequences.size() < table.frag_count)
-                        table.sequences.push_back(&seq);
+                        table.sequences.emplace_back(seq);
                 }
             }
         }
@@ -1922,7 +1966,7 @@ public:
         std::print("Buffer          : {} X {}M = {}uM\n", T, mem_mb, T * mem_mb);
         mem_need += T * mem;
 
-        mem = F * (sizeof(Sequence*) + sizeof(IndexCount)) + NAAN * sizeof(std::vector<IndexCount>);
+        mem = F * (sizeof(Sequence*) + sizeof(IndexCount)) + NAAN * sizeof(NVector<IndexCount>);
         std::print("Table           : {} X {}M = {}M\n", table, mem_mb, table * mem_mb);
         mem_need += table * mem;
 
@@ -2002,20 +2046,20 @@ public:
     // by liwz gzip version 2019-02
     // PE reads liwz, disable swap option
     void Read(const std::string_view file, const std::string_view file2) {
-        // Sequence one, two;
-        // Sequence des;
-        // const auto fin = HitFStream(file);
-        // const auto fin2 = HitFStream(file2);
-        // char* buffer = nullptr;
-        // char* buffer2 = nullptr;
-        // char* res = nullptr;
-        // char* res2 = nullptr;
-        // size_t option_l = options.min_length;
+        Sequence one, two;
+        Sequence des;
+        const auto fin = HitFStream(file);
+        const auto fin2 = HitFStream(file2);
+        char* buffer = nullptr;
+        char* buffer2 = nullptr;
+        char* res = nullptr;
+        char* res2 = nullptr;
+        size_t option_l = options.min_length;
 
-        // Clear();
+        Clear();
 
-        // buffer = new char[MAX_LINE_SIZE + 1];
-        // buffer2 = new char[MAX_LINE_SIZE + 1];
+        buffer = new char[MAX_LINE_SIZE + 1];
+        buffer2 = new char[MAX_LINE_SIZE + 1];
         //
         // while (((not gzeof(fin)) && (not gzeof(fin2))) || (one.size && two.size)) { /* do not break when the last sequence is not handled */
         // 	buffer[0] = '>'; res = gzgets(fin, buffer, MAX_LINE_SIZE);
@@ -2164,25 +2208,22 @@ public:
 
         Sequence one, two;
         Sequence des;
-        auto fin = std::ifstream(file);
-        if (fin.fail())
-            throw std::invalid_argument("Failed to open the database file");
-        auto fin2 = std::ifstream(file2);
-        if (fin2.fail())
-            throw std::invalid_argument("Failed to open the database file");
-        Clear();
-
-        // Todo: merge with ReadOne
-        /*
+        FILE* fin = fopen(file, "rb");
+        FILE* fin2 = fopen(file2, "rb");
         char* buffer = nullptr;
         char* buffer2 = nullptr;
         char* res = nullptr;
         char* res2 = nullptr;
         size_t option_l = options.min_length;
+        if (fin == nullptr)
+            throw std::invalid_argument("Failed to open the database file");
+        if (fin2 == nullptr)
+            throw std::invalid_argument("Failed to open the database file");
+        Clear();
         buffer = new char[MAX_LINE_SIZE + 1];
         buffer2 = new char[MAX_LINE_SIZE + 1];
 
-        while ((not fin.eof() && not fin2.eof()) || (one.size && two.size)) { // do not break when the last sequence is not handled
+        while (((not feof(fin)) && (not feof(fin2))) || (one.size && two.size)) { /* do not break when the last sequence is not handled */
             buffer[0] = '>';
             res = fgets(buffer, MAX_LINE_SIZE, fin);
             buffer2[0] = '>';
@@ -2274,7 +2315,7 @@ public:
                             one.trim(options.trim_len);
                         if (options.trim_len_R2 > 0)
                             two.trim(options.trim_len_R2);
-                        sequences.emplace_back(std::move(one), std::move(two));
+                        sequences.emplace_back({one, two});
                     }
                 }
                 // R1
@@ -2332,7 +2373,17 @@ public:
                 two += buffer2;
             }
         }
-            */
+#if 0
+		int i, n = 0;
+		for (i = 0; i < sequences.size(); i++) n += sequences[i].bufsize + 4;
+		cout << n << "\t" << sequences.capacity() * sizeof(Sequence) << endl;
+		int i;
+		scanf("%i", &i);
+#endif
+        delete[] buffer;
+        fclose(fin);
+        delete[] buffer2;
+        fclose(fin2);
     }
 
 #if 0
@@ -2396,6 +2447,7 @@ public:
         if (sort) {
             // **************************** Form NR_idx[], Sort them from Long to short
             size_t sum = 0;
+            size_t M = max_len - min_len + 1;
             std::map<size_t, size_t> counter; // count for each size = max_len - i
 
             size_t sequences_number = sequences.size();
@@ -2409,22 +2461,7 @@ public:
                     break;
                 }
             }
-
-            // template <>
-            // struct std::less<Sequence> : std::ranges::less<Sequence, Sequence, bool> {
-            //     [[nodiscard]] bool operator()(Sequence& _Left, Sequence& _Right) const {
-            //         return _Left.get_data_size() > _Right.get_data_size();
-            //     }
-            //
-            // };
-
-            struct SeqBigger {
-                bool operator()(const Sequence& a, const Sequence& b) const {
-                    return a.get_data_size() > b.get_data_size();
-                }
-            };
-
-            std::ranges::sort(sequences, SeqBigger{});
+            std::ranges::sort(sequences, {}, [](const auto& s){ return -s.size; });
 
             options.max_entries = 0;
             for (size_t i = 0; i < sequences.size(); i++) {
@@ -2463,6 +2500,11 @@ public:
             }
             seg_size += seq.size;
 
+            auto count = seq.tot_length / MAX_LINE_SIZE;
+            auto rest = seq.tot_length % MAX_LINE_SIZE;
+            // printf( "count = %6i,  rest = %6i\n", count, rest );
+            char* buf = new char[MAX_LINE_SIZE + 1];
+
             string sbuf;
             while (!fin.eof()) {
                 fin >> sbuf;
@@ -2477,13 +2519,13 @@ public:
 
 
     void WriteClusters(const std::string_view db, const std::string_view newdb, const std::string_view db_pe = {}, const std::string_view newdb_pe = {}) {
-        std::ranges::sort(sequences, {}, [](const Sequence& s) { return s.index; });
-        std::ranges::sort(sequences, {}, [](const Sequence& s) { return s.cluster_id; });
+        std::ranges::sort(sequences, {}, [](const Sequence* s) { return s->index; });
+        std::ranges::sort(sequences, {}, [](const Sequence* s) { return s->cluster_id; });
 
         auto fin = HitFStream(db);
         std::ofstream fout(newdb.data());
 
-        for (const Sequence& seq : sequences) {
+        for (const Sequence* seq : sequences) {
             // R1
             fin.seek(seq.des_begin);
             copy_sequence_chunked(fin, fout, seq.tot_length);
@@ -2499,7 +2541,7 @@ public:
         auto fin_pe = HitFStream(db_pe);
         std::ofstream fout_pe(newdb_pe.data());
 
-        for (const Sequence& seq : sequences) {
+        for (const Sequence* seq : sequences) {
             fin_pe.seek(seq.des_begin2);
             copy_sequence_chunked(fin_pe, fout_pe, seq.tot_length);
         }
