@@ -157,7 +157,7 @@ int diag_test_aapn(int NAA1, char iseq2[], int len1, int len2, WorkingBuffer& bu
     int i1, j, k;
     size_t nall = len1 + len2 - 1;
 
-    if (nall > MAX_DIAG)
+    if (nall > StaticOptions::MAX_DIAG)
         throw std::invalid_argument("in diag_test_aapn, MAX_DIAG reached");
     for (auto* pp = &buffer.diag_score[0], i = nall; i; i--, pp++)
         *pp = 0;
@@ -259,7 +259,7 @@ int diag_test_aapn_est(int NAA1, const char iseq2[], int len1, int len2, Working
     int NAA2 = NAA1 * NAA1;
     int NAA3 = NAA2 * NAA1;
 
-    if (nall > MAX_DIAG)
+    if (nall > StaticOptions::MAX_DIAG)
         throw std::invalid_argument("in diag_test_aapn_est, MAX_DIAG reached");
     auto* pp = &buffer.diag_score[0];
     auto* pp2 = &buffer.diag_score2[0];

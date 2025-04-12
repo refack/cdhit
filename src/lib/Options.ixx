@@ -14,6 +14,8 @@ using std::endl;
 
 export string temp_dir = "";
 
+export typedef std::map<string, string> ArgsMap;
+
 enum class match_mask {
 	none = 0,
 	A = 1,
@@ -89,9 +91,35 @@ bool parse_bool(const string& sv) {
 	throw std::invalid_argument("Invalid boolean value: " + sv);
 }
 
-export struct Options
+
+// non templated statics
+export string_view executable_name{};
+export const auto start_time = std::chrono::system_clock::now();
+
+export struct StaticOptions {
+    // static constinit size_t MAX_UAA;
+    static constexpr size_t MAX_GAP = MAX_SEQ;			                     // MAX_GAP <= MAX_SEQ
+    static constexpr size_t MAX_DIAG = (MAX_GAP * 2);                        // MAX_DIAG be twice of MAX_SEQ
+};
+// end non templated statics
+
+
+export template <bool TisEST>
+struct CodeConfig {
+    static constexpr bool PE_mode = true;       // -P
+    static constexpr bool isEST = TisEST;
+};
+
+export template<typename CodeConfig = CodeConfig<false>>
+struct Options
 {
-	size_t NAA = 5;
+    static constinit bool has2D;
+    static constinit bool is454;
+    static constinit bool backupFile;
+
+    bool isEST = CodeConfig::isEST;
+    bool PE_mode = CodeConfig::PE_mode;
+    size_t NAA = 5;
 	size_t NAAN;
 	size_t NAA_top_limit = 5;
 
@@ -129,12 +157,6 @@ export struct Options
 	size_t max_entries;
 	size_t max_sequences = 1 << 20;
 	size_t mem_limit = 100000000;
-	
-	bool PE_mode = false;                    // -P
-	bool has2D = false;
-	bool isEST = false;
-	bool is454 = false;
-	bool backupFile = false;
 
 	string input;
 	string input_pe;
@@ -152,11 +174,155 @@ private:
     int est_match = 0;
     int est_mismatch = 0;
 
+    // No use case for this on the API
+    Options(Options&&) = default;
+
+    Options(Options&& defaults, const ArgsMap& args): Options(defaults)
+    {
+        for(const auto& opt : args) {
+            SetOption(opt.first, opt.second);
+        }
+        mat.set_gaps(est_gap, est_ext_gap);
+        mat.set_match(est_match);
+        mat.set_mismatch(est_mismatch);
+
+        Validate();
+    }
+
 public:
+    // container for defaults
+    Options() = default;
 
-	Options() = default;
+    Options& operator=(Options&&) = default;
+    Options& operator=(const Options&) = default;
+    Options(const Options&) = default;
 
-    constexpr bool useDistance() const {
+	void Validate()
+	{
+		std::vector<std::string> errs;
+		if(distance_thd > 0.0) {
+			if(cluster_thd > 0) {
+				errs.push_back("can not use both identity cutoff and distance cutoff");
+			}
+			if((distance_thd > 1.0) || (distance_thd < 0.0)) {
+				errs.push_back("invalid distance threshold");
+			}
+		} else if constexpr(CodeConfig::isEST) {
+			if(!(0.8 <= cluster_thd && cluster_thd <= 1.0)) {
+				errs.push_back(std::format("invalid clstr threshold, should by 0.8 <= {} <= 1.0",cluster_thd));
+			}
+		} else {
+			if((cluster_thd > 1.0) || (cluster_thd < 0.4)) {
+				errs.push_back("invalid clstr");
+			}
+		}
+
+		if(input.empty())
+			errs.push_back("no input file");
+		if(output.empty())
+			errs.push_back("no output file");
+		if constexpr (CodeConfig::PE_mode) {
+			if(input_pe.empty())
+				errs.push_back("no input file for R2 sequences in PE mode");
+			if(output_pe.empty())
+				errs.push_back("no output file for R2 sequences in PE mode");
+		}
+		if constexpr(CodeConfig::isEST) if (align_pos == 1)	option_r = 0;
+
+		if(band_width < 1)
+			errs.push_back("invalid band width");
+		if(NAA < 2 || NAA > NAA_top_limit)
+			errs.push_back("invalid word length");
+		if(des_len < 0)
+			errs.push_back("too short description, not enough to identify sequences");
+		if constexpr (not CodeConfig::isEST) if (tolerance < 0 || tolerance > 5)
+		    errs.push_back("invalid tolerance");
+		if((diff_cutoff < 0) || (diff_cutoff > 1))
+			errs.push_back("invalid value for -s");
+		if(diff_cutoff_aa < 0)
+			errs.push_back("invalid value for -S");
+		if(has2D) {
+			if((diff_cutoff2 < 0) || (diff_cutoff2 > 1))
+				errs.push_back("invalid value for -s2");
+			if(diff_cutoff_aa2 < 0)
+				errs.push_back("invalid value for -S2");
+			if constexpr (CodeConfig::PE_mode)
+			    if (input2_pe.empty()) errs.push_back("no input file for R2 sequences for 2nd db in PE mode");
+		}
+		if(global_identity == 0)
+			print = 1;
+		if(short_coverage < long_coverage)
+			short_coverage = long_coverage;
+		if(short_control > long_control)
+			short_control = long_control;
+		if((global_identity == 0) && (short_coverage == 0.0) && (min_control == 0))
+			errs.push_back("You are using local identity, but no -aS -aL -A option");
+		if(frag_size < 0)
+			errs.push_back("invalid fragment size");
+		constexpr auto message = "Your word length is {}, using {} may be faster!";
+
+		#if 0
+		if(useDistance){
+			/* when required_aan becomes zero */
+			if(distance_thd * NAA >= 1)
+				std::println(std::cerr, "\nWarning:\nword length is too long for the distance cutoff\nNot fatal, but may affect results !!\n");
+		} else{
+			/* when required_aan becomes zero */
+			if(cluster_thd <= 1.0 - 1.0 / NAA)
+				std::println(std::cerr, "\nWarning:\nword length is too long for the identity cutoff\nNot fatal, but may affect results !!\n");
+		}
+
+		if(not isEST && tolerance)
+		{
+			int clstr_idx = (int)(cluster_thd * 100) - naa_stat_start_percent;
+			int tcutoff = naa_stat[tolerance - 1][clstr_idx][5 - NAA];
+
+			if(tcutoff < 5)
+				errs.emplace("Too low cluster threshold for the word length.\n"
+						   "Increase the threshold or the tolerance, or decrease the word length.");
+			for(size_t i = 5; i > NAA; i--)
+			{
+				if(naa_stat[tolerance - 1][clstr_idx][5 - i] > 10)
+				{
+					printf(message,NAA,i);
+					break;
+				}
+			}
+		}
+		#endif
+
+		if constexpr(CodeConfig::isEST)
+		{
+			if(cluster_thd > 0.9 && NAA < 8)
+				std::println(message,NAA,8);
+			else if(cluster_thd > 0.87 && NAA < 5)
+				std::println(message,NAA,5);
+			else if(cluster_thd > 0.80 && NAA < 4)
+				std::println(message,NAA,4);
+			else if(cluster_thd > 0.75 && NAA < 3)
+				std::println(message,NAA,3);
+		} else
+		{
+			if(cluster_thd > 0.85 && NAA < 5)
+				std::println(message,NAA,5);
+			else if(cluster_thd > 0.80 && NAA < 4)
+				std::println(message,NAA,4);
+			else if(cluster_thd > 0.75 && NAA < 3)
+				std::println(message,NAA,3);
+		}
+
+		if((min_length + 1) < NAA)
+			errs.push_back("Too short -l, redefine it");
+
+		if(!errs.empty()) {
+			std::cerr << "Errors:\n";
+			for(const auto &err : errs)
+				std::cerr << "  " << err << "\n";
+			throw std::invalid_argument("Invalid options");
+		}
+	}
+
+        constexpr bool useDistance() const {
         return (distance_thd > 0.0);
     }
 	bool SetOptionCommon(const string_view flag, const string& value)
@@ -236,7 +402,7 @@ public:
 		return true;
 	}
 
-	bool SetOption(const string_view sflag, const string& value)
+	bool SetOption(const string& sflag, const string& value)
 	{
 		if(is454)
 		{
@@ -264,7 +430,7 @@ public:
 			frag_size = std::stoi(value);
 		else if(has2D && SetOption2D(sflag,value))
 			return true;
-		else if(isEST && SetOptionEST(sflag,value))
+		else if constexpr(CodeConfig::isEST) if (SetOptionEST(sflag,value))
 			return true;
 		else
 			return false;
@@ -321,245 +487,99 @@ public:
 		return true;
 	}
 
-	bool SetOptions(const std::vector<std::string_view>& args,bool twod,bool est)
-	{
-		std::println("================================================================");
-		std::println("Program: CD-HIT, V{} {}, {}",CDHIT_VERSION,WITH_OPENMP,__DATE__);
-		std::print("Command:");
-		auto n = 9;
-		for(auto opt : args)
-		{
-			n += opt.length() + 1;
-			if(n >= 64)
-			{
-				cout << "\n         " << opt;
-				n = opt.length() + 9;
-			} else
-			{
-				cout << " " << opt;
-			}
-		}
-		std::println("\n");
-
-		auto now = std::chrono::system_clock::now();
-		std::println("Started: {0:%c} {0:%Z}",now);
-		std::println("================================================================");
-		std::println("                            Output                              ");
-		std::println("----------------------------------------------------------------");
-		has2D = twod;
-		isEST = est;
-
-		for(size_t i = 0; i < args.size(); i++)
-		{
-			auto key = args[i];
-			if(!key.starts_with('-'))
-				std::println(std::cerr, "Warning: Invalid option number {} = {}", i, key);
-			if(i + 1 >= args.size())
-			{
-				std::println(std::cerr, "Error: Missing value for option: {} = {}", i, key);
-				return false;
-			}
-			string value{args[++i]};
-			if(value.starts_with('-')) {
-				std::println(std::cerr, "Error: all parameters need a value {} = {}, {} = {}", i - 1, key, i, value);
-				return false;
-			}
-
-			if(!SetOption(key, value))
-			{
-				std::println(std::cerr, "Error: Invalid parameter or value at {} : {} = {}", i - 1, key, value);
-				return false;			
-			}
-		}
-        mat.set_gaps(est_gap, est_ext_gap);
-        mat.set_match(est_match);
-        mat.set_mismatch(est_mismatch);
-
-		return true;
-	}
-
-	void Validate()
-	{
-		std::vector<std::string> errs;
-		if(distance_thd > 0.0) {
-			if(cluster_thd > 0) {
-				errs.push_back("can not use both identity cutoff and distance cutoff");
-			}
-			if((distance_thd > 1.0) || (distance_thd < 0.0)) {
-				errs.push_back("invalid distance threshold");
-			}
-		} else if(isEST) {
-			if(!(0.8 <= cluster_thd && cluster_thd <= 1.0)) {
-				errs.push_back(std::format("invalid clstr threshold, should by 0.8 <= {} <= 1.0",cluster_thd));
-			}
-		} else {
-			if((cluster_thd > 1.0) || (cluster_thd < 0.4)) {
-				errs.push_back("invalid clstr");
-			}
-		}
-
-		if(input.empty())
-			errs.push_back("no input file");
-		if(output.empty())
-			errs.push_back("no output file");
-		if(PE_mode) {
-			if(input_pe.empty())
-				errs.push_back("no input file for R2 sequences in PE mode");
-			if(output_pe.empty())
-				errs.push_back("no output file for R2 sequences in PE mode");
-		}
-		if(isEST && (align_pos == 1))
-			option_r = 0;
-
-		if(band_width < 1)
-			errs.push_back("invalid band width");
-		if(NAA < 2 || NAA > NAA_top_limit)
-			errs.push_back("invalid word length");
-		if(des_len < 0)
-			errs.push_back("too short description, not enough to identify sequences");
-		if(not isEST && (tolerance < 0 || tolerance > 5))
-			errs.push_back("invalid tolerance");
-		if((diff_cutoff < 0) || (diff_cutoff > 1))
-			errs.push_back("invalid value for -s");
-		if(diff_cutoff_aa < 0)
-			errs.push_back("invalid value for -S");
-		if(has2D) {
-			if((diff_cutoff2 < 0) || (diff_cutoff2 > 1))
-				errs.push_back("invalid value for -s2");
-			if(diff_cutoff_aa2 < 0)
-				errs.push_back("invalid value for -S2");
-			if(PE_mode && input2_pe.empty())
-				errs.push_back("no input file for R2 sequences for 2nd db in PE mode");
-		}
-		if(global_identity == 0)
-			print = 1;
-		if(short_coverage < long_coverage)
-			short_coverage = long_coverage;
-		if(short_control > long_control)
-			short_control = long_control;
-		if((global_identity == 0) && (short_coverage == 0.0) && (min_control == 0))
-			errs.push_back("You are using local identity, but no -aS -aL -A option");
-		if(frag_size < 0)
-			errs.push_back("invalid fragment size");
-		constexpr auto message = "Your word length is {}, using {} may be faster!";
-
-		#if 0
-		if(useDistance){
-			/* when required_aan becomes zero */
-			if(distance_thd * NAA >= 1)
-				std::println(std::cerr, "\nWarning:\nword length is too long for the distance cutoff\nNot fatal, but may affect results !!\n");
-		} else{
-			/* when required_aan becomes zero */
-			if(cluster_thd <= 1.0 - 1.0 / NAA)
-				std::println(std::cerr, "\nWarning:\nword length is too long for the identity cutoff\nNot fatal, but may affect results !!\n");
-		}
-
-		if(not isEST && tolerance)
-		{
-			int clstr_idx = (int)(cluster_thd * 100) - naa_stat_start_percent;
-			int tcutoff = naa_stat[tolerance - 1][clstr_idx][5 - NAA];
-
-			if(tcutoff < 5)
-				errs.emplace("Too low cluster threshold for the word length.\n"
-						   "Increase the threshold or the tolerance, or decrease the word length.");
-			for(size_t i = 5; i > NAA; i--)
-			{
-				if(naa_stat[tolerance - 1][clstr_idx][5 - i] > 10)
-				{
-					printf(message,NAA,i);
-					break;
-				}
-			}
-		}
-		#endif
-
-		if(isEST)
-		{
-			if(cluster_thd > 0.9 && NAA < 8)
-				std::println(message,NAA,8);
-			else if(cluster_thd > 0.87 && NAA < 5)
-				std::println(message,NAA,5);
-			else if(cluster_thd > 0.80 && NAA < 4)
-				std::println(message,NAA,4);
-			else if(cluster_thd > 0.75 && NAA < 3)
-				std::println(message,NAA,3);
-		} else
-		{
-			if(cluster_thd > 0.85 && NAA < 5)
-				std::println(message,NAA,5);
-			else if(cluster_thd > 0.80 && NAA < 4)
-				std::println(message,NAA,4);
-			else if(cluster_thd > 0.75 && NAA < 3)
-				std::println(message,NAA,3);
-		}
-
-		if((min_length + 1) < NAA)
-			errs.push_back("Too short -l, redefine it");
-
-		if(!errs.empty()) {
-			std::cerr << "Errors:\n";
-			for(const auto &err : errs)
-				std::cerr << "  " << err << "\n";
-			throw std::invalid_argument("Invalid options");
-		}
-	}
 
 	void ComputeTableLimits(size_t min_len,size_t max_len,size_t typical_len,size_t mem_need);
 
-	// void Options::Print()
-	// {
-	//     printf("isEST = %i\n", isEST);
-	//     printf("has2D = %i\n", has2D);
-	//     printf("NAA = %i\n", NAA);
-	//     printf("NAA_top_limit = %i\n", NAA_top_limit);
-	//     printf("min_length = %i\n", min_length);
-	//     printf("cluster_best = %i\n", cluster_best);
-	//     printf("global_identity = %i\n", global_identity);
-	//     printf("cluster_thd = %g\n", cluster_thd);
-	//     printf("diff_cutoff = %g\n", diff_cutoff);
-	//     printf("diff_cutoff_aa = %i\n", diff_cutoff_aa);
-	//     printf("tolerance = %i\n", tolerance);
-	//     printf("long_coverage = %g\n", long_coverage);
-	//     printf("long_control = %i\n", long_control);
-	//     printf("short_coverage = %g\n", short_coverage);
-	//     printf("short_control = %i\n", short_control);
-	//     printf("frag_size = %i\n", frag_size);
-	//     printf("option_r = %i\n", option_r);
-	//     printf("print = %i\n", print);
-	// }
+    static ArgsMap&& ParseArgs(std::span<const char*> all_args)
+    {
+        executable_name = all_args[0];
+        auto args = all_args.subspan(1, all_args.size() - 1);
+        if (args.size() < 4)
+            throw std::invalid_argument(std::format("Invalid number of arguments {}", args.size()));
+
+        ArgsMap arg_map;
+        for(size_t i = 0; i < args.size(); i++)
+        {
+            string key = args[i];
+            if(!key.starts_with('-'))
+                throw std::invalid_argument(std::format("Error: weird arg, should start with '-': {} = {}", i, key));
+            if(i + 1 >= args.size())
+                throw std::invalid_argument(std::format("Error: Missing value for last option: {} = {}", i, key));
+
+            string value{args[++i]};
+            if(value.starts_with('-'))
+                throw std::invalid_argument(std::format("Error: all parameters need a value {} = {}, {} = {}", i - 1, key, i, value));
+
+            arg_map[std::move(key)] = std::move(value);
+        }
+        return std::move(arg_map);
+    }
+
+    static void RollStart(std::span<const char*> args);
 };
+
+constinit bool Options<CodeConfig<true>>::has2D = false;
+constinit bool Options<CodeConfig<true>>::is454 = false;
+constinit bool Options<CodeConfig<true>>::backupFile = false;
+
+constinit bool Options<CodeConfig<false>>::has2D = false;
+constinit bool Options<CodeConfig<false>>::is454 = false;
+constinit bool Options<CodeConfig<false>>::backupFile = false;
 
 
 export Options options;
 
+template<typename CodeConfig = CodeConfig<false>>
+void Options<CodeConfig>::RollStart(std::span<const char*> all_args) {
+    std::println("================================================================");
+    std::println("Program: CD-HIT, V{} {}, {}", CDHIT_VERSION, WITH_OPENMP, __DATE__);
+    std::println("Started: {0:%c} {0:%Z}", start_time);
 
-void Options::ComputeTableLimits(size_t min_len,const size_t max_len,const size_t typical_len,const size_t mem_need)
-{
-	// liwz Fri Jan 15 15:44:47 PST 2016
-	// T=1 scale=1
-	// T=2 scale=0.6035
-	// T=4 scale=0.375
-	// T=8 scale=0.2392
-	// T=16 scale=0.1562
-	// T=32 scale=0.104
-	// T=64 scale=0.0703
+    const ArgsMap& argsmaps = Options::ParseArgs(all_args);
 
-	double scale = 0.5 / threads + 0.5 / std::sqrt(threads);
-	max_sequences = static_cast<size_t>(scale * MAX_TABLE_SEQ);
-	max_entries = static_cast<size_t>(scale * (500 * max_len + 500000 * typical_len + 50000000));
-	if(max_memory)
-	{
-		double frac = max_sequences / static_cast<double>(max_entries);
-		max_entries = (options.max_memory - mem_need) / sizeof(IndexCount);
-		max_sequences = static_cast<size_t>(max_entries * frac);
-		if(max_sequences < MAX_TABLE_SEQ / 100)
-			max_sequences = MAX_TABLE_SEQ / 100;
-		if(max_sequences > MAX_TABLE_SEQ)
-			max_sequences = MAX_TABLE_SEQ;
-	}
-	printf("Table limit with the given memory limit:\n");
-	printf("Max number of representatives: %zu\n",max_sequences);
-	printf("Max number of word counting entries: %zu\n\n",max_entries);
+    std::println("Command line arguments:");
+    std::println("Executable: {}", executable_name);
+    for (const auto& arg : argsmaps) {
+        std::println("  {} = {}", arg.first, arg.second);
+    }
+
+    // double spacer
+    std::println("\n");
+
+    std::println("================================================================");
+    std::println("                            Output                              ");
+    std::println("----------------------------------------------------------------");
+
+    options = std::move(Options<CodeConfig>(std::move(options), argsmaps));
+}
+
+
+template<typename CodeConfig>
+void Options<CodeConfig>::ComputeTableLimits(size_t min_len, const size_t max_len, const size_t typical_len, const size_t mem_need) {
+    // liwz Fri Jan 15 15:44:47 PST 2016
+    // T=1 scale=1
+    // T=2 scale=0.6035
+    // T=4 scale=0.375
+    // T=8 scale=0.2392
+    // T=16 scale=0.1562
+    // T=32 scale=0.104
+    // T=64 scale=0.0703
+
+    double scale = 0.5 / threads + 0.5 / std::sqrt(threads);
+    max_sequences = static_cast<size_t>(scale * MAX_TABLE_SEQ);
+    max_entries = static_cast<size_t>(scale * (500 * max_len + 500000 * typical_len + 50000000));
+    if (max_memory) {
+        double frac = max_sequences / static_cast<double>(max_entries);
+        max_entries = (options.max_memory - mem_need) / sizeof(IndexCount);
+        max_sequences = static_cast<size_t>(max_entries * frac);
+        if (max_sequences < MAX_TABLE_SEQ / 100)
+            max_sequences = MAX_TABLE_SEQ / 100;
+        if (max_sequences > MAX_TABLE_SEQ)
+            max_sequences = MAX_TABLE_SEQ;
+    }
+    printf("Table limit with the given memory limit:\n");
+    printf("Max number of representatives: %zu\n", max_sequences);
+    printf("Max number of word counting entries: %zu\n\n", max_entries);
 }
 
 
@@ -953,3 +973,30 @@ export inline int print_usage_454(const char* arg)
 	cout << "   " << cd_hit_ref3 << "\n\n\n";
 	std::exit(1);
 }
+
+#ifdef _MAX_SEQ_
+auto Options::MAX_SEQ = _MAX_SEQ_;
+#endif
+#undef _MAX_SEQ_
+
+// void Options::Print()
+// {
+//     printf("isEST = %i\n", isEST);
+//     printf("has2D = %i\n", has2D);
+//     printf("NAA = %i\n", NAA);
+//     printf("NAA_top_limit = %i\n", NAA_top_limit);
+//     printf("min_length = %i\n", min_length);
+//     printf("cluster_best = %i\n", cluster_best);
+//     printf("global_identity = %i\n", global_identity);
+//     printf("cluster_thd = %g\n", cluster_thd);
+//     printf("diff_cutoff = %g\n", diff_cutoff);
+//     printf("diff_cutoff_aa = %i\n", diff_cutoff_aa);
+//     printf("tolerance = %i\n", tolerance);
+//     printf("long_coverage = %g\n", long_coverage);
+//     printf("long_control = %i\n", long_control);
+//     printf("short_coverage = %g\n", short_coverage);
+//     printf("short_control = %i\n", short_control);
+//     printf("frag_size = %i\n", frag_size);
+//     printf("option_r = %i\n", option_r);
+//     printf("print = %i\n", print);
+// }

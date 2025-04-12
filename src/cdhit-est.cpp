@@ -26,9 +26,6 @@
 
 import std;
 
-constexpr size_t MAX_UAA = 4;
-constexpr size_t MAX_SEQ = 200;
-
 import common;
 import Options;
 import SequenceDB;
@@ -40,28 +37,35 @@ static SequenceDB seq_db;
 // static ScoreMatrix<true> mat{};
 // mat.set_to_na(); // mat.set_gap(-6,-1);
 
+// Compile time consts (better #define MACROS)
+// constinit auto ScoreMatrixOptions::MAX_SEQ = 200;
+using SetOptions = Options<CodeConfig<false>>;
+
 ////////////////////////////////////  MAIN /////////////////////////////////////
-int main(std::size_t _argc, const char* _argv[])
+// template<typename SetOptions>
+int main(std::size_t argc, const char* argv[])
 {
-	const auto begin_time = std::time(nullptr);
+    SetGlobals(4);
 
-    const std::span all_args{_argv, _argc};
-	const std::string_view prog_name{all_args[0]};
-    auto args_span = all_args.subspan(1, all_args.size() - 1);
-    if (args_span.size() < 4)
-		print_usage_est(prog_name);
-
-	options.cluster_thd = 0.95;
+    options.cluster_thd = 0.95;
 	options.NAA = 10;
 	options.NAAN = NAA8;
 	seq_db.NAAN = NAA8;
 	options.NAA_top_limit = 12;
 	setaa_to_na();
 
-    const std::vector<std::string_view> args(args_span.begin(), args_span.end());
-	if (!options.SetOptions(args, false, true))
-		print_usage_est(prog_name);
-	options.Validate();
+    try {
+        SetOptions::RollStart({argv, argc});
+    }catch (std::invalid_argument& e) {
+        std::cerr << std::endl << e.what() << std::endl;
+        std::print("run {} -h for help\n", executable_name);
+        std::exit(1);
+    }
+
+ //    const ArgsMap& args = options.ParseArgs(args_span);
+	// if (!options.SetOptions(args, false, true))
+	// 	print_usage_est(prog_name);
+	// options.Validate();
 
 	seq_db.NAAN = NAAN_array[options.NAA];
 
@@ -90,8 +94,8 @@ int main(std::size_t _argc, const char* _argv[])
 	// write a backup clstr file in case next step crashes
 	seq_db.WriteExtra1D();
 	
-	const auto end_time = std::time(nullptr);
-	const auto elapsed_time = end_time - begin_time;
+	const auto end_time = std::chrono::system_clock::now();
+	const auto elapsed_time = end_time - start_time;
 	std::println("program completed in {} seconds", elapsed_time);
 	return 0;
 }

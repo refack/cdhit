@@ -19,17 +19,7 @@ export constexpr std::string_view WITH_OPENMP{};
 
 export constexpr std::string_view BUILD_DATE{__DATE__};
 
-#ifdef _MAX_SEQ_
-export constexpr std::size_t MAX_SEQ = _MAX_SEQ_;
-#else
-export constexpr std::size_t MAX_SEQ = 655360;
-#endif
-#undef _MAX_SEQ_
-
-
-export constexpr size_t MAX_GAP = MAX_SEQ;			                     // MAX_GAP <= MAX_SEQ
-export constexpr size_t MAX_DIAG = (MAX_GAP * 2);                        // MAX_DIAG be twice of MAX_SEQ
-export constexpr size_t MAX_UAA = 21;
+export constexpr size_t MAX_UAA = 4;
 export constexpr size_t MAX_FILE_NAME = 1280;
 export constexpr size_t MAX_SEG = 50;
 export constexpr size_t MAX_BIN_SWAP = 2 << 30;
@@ -37,6 +27,12 @@ export constexpr size_t MAX_TABLE_SIZE = 5'0000'000;
 export constexpr size_t CLOCK_TICKS = 100;
 export constexpr size_t FAILED_FUNC = 1;
 export constexpr size_t OK_FUNC = 0;
+
+export consteval void SetGlobals(const size_t uaa) {
+    // MAX_UAA = uaa;
+}
+
+
 
 
 #if defined(LONG_SEQ) && defined(SHORT_SEQ)

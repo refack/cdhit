@@ -4,6 +4,7 @@ import std;
 import common;
 import Sequence;
 import Options;
+import ScoreMatrix;
 
 export struct WorkingBuffer
 {
@@ -44,8 +45,8 @@ export struct WorkingBuffer
 		word_encodes_backup.resize(max_len);
 		lookCounts.resize(frag + 2);
 		indexMapping.resize(frag + 2);
-		diag_score.resize(MAX_DIAG);
-		diag_score2.resize(MAX_DIAG);
+		diag_score.resize(StaticOptions::MAX_DIAG);
+		diag_score2.resize(StaticOptions::MAX_DIAG);
 		aan_list_comp.resize(max_len);
 		total_bytes = max_len;
 		total_bytes += taap.size() * sizeof(int);

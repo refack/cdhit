@@ -48,6 +48,8 @@ constexpr std::array BLOSUM62_DNA = {
   //0  1  2  3  3  4  5
 };
 
+export constexpr size_t MAX_SEQ = 200;
+
 export template <bool is_dna>
 class ScoreMatrix {
     static consteval std::size_t get_max() { return is_dna ? MAX_NA : MAX_AA; }
