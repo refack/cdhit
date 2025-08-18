@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  master:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile
+    volumes:
+      - shared-data:/data
+    # Keep the master container running so we can exec into it
+    command: tail -f /dev/null
+    networks:
+      - cdhit-net
+
+  worker1:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile
+    volumes:
+      - shared-data:/data
+    networks:
+      - cdhit-net
+
+  worker2:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile
+    volumes:
+      - shared-data:/data
+    networks:
+      - cdhit-net
+
+volumes:
+  shared-data:
+
+networks:
+  cdhit-net:
+    driver: bridge
