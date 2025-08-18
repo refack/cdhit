@@ -10,3 +10,4 @@ vcpkg/
 zzz/
 upstream_master/
 /.cache/clangd/index
+test_*/
