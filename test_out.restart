@@ -1,0 +1,134 @@
+[
+  {
+    "cmd": "/home/jules/.pyenv/versions/3.12.11/bin/python3 /app/scripts/cd-hit-div.py /app/test.fasta test_out.cd-hit-para-tmp/test.fasta.div 4",
+    "status": "done",
+    "in": [
+      "test.fasta"
+    ],
+    "out": [
+      "test_out.cd-hit-para-tmp/test.fasta.div-0",
+      "test_out.cd-hit-para-tmp/test.fasta.div-1",
+      "test_out.cd-hit-para-tmp/test.fasta.div-2",
+      "test_out.cd-hit-para-tmp/test.fasta.div-3"
+    ]
+  },
+  {
+    "cmd": "cd-hit -i test_out.cd-hit-para-tmp/test.fasta.div-0 -o test_out.cd-hit-para-tmp/test.fasta.div-0-o -c 0.8 >> test_out.cd-hit-para-tmp/test.fasta.div-0.log",
+    "status": "wait",
+    "in": [
+      "test_out.cd-hit-para-tmp/test.fasta.div-0"
+    ],
+    "out": [
+      "test_out.cd-hit-para-tmp/test.fasta.div-0-o",
+      "test_out.cd-hit-para-tmp/test.fasta.div-0-o.clstr"
+    ]
+  },
+  {
+    "cmd": "cd-hit-2d -i test_out.cd-hit-para-tmp/test.fasta.div-0-o -i2 test_out.cd-hit-para-tmp/test.fasta.div-1 -o test_out.cd-hit-para-tmp/test.fasta.div-1.vs.0 -c 0.8 >> test_out.cd-hit-para-tmp/test.fasta.div-1.log",
+    "status": "wait",
+    "in": [
+      "test_out.cd-hit-para-tmp/test.fasta.div-0-o",
+      "test_out.cd-hit-para-tmp/test.fasta.div-1"
+    ],
+    "out": [
+      "test_out.cd-hit-para-tmp/test.fasta.div-1.vs.0",
+      "test_out.cd-hit-para-tmp/test.fasta.div-1.vs.0.clstr"
+    ]
+  },
+  {
+    "cmd": "cd-hit -i test_out.cd-hit-para-tmp/test.fasta.div-1.vs.0 -o test_out.cd-hit-para-tmp/test.fasta.div-1-o -c 0.8 >> test_out.cd-hit-para-tmp/test.fasta.div-1.log",
+    "status": "wait",
+    "in": [
+      "test_out.cd-hit-para-tmp/test.fasta.div-1.vs.0",
+      "test_out.cd-hit-para-tmp/test.fasta.div-1.vs.0.clstr"
+    ],
+    "out": [
+      "test_out.cd-hit-para-tmp/test.fasta.div-1-o",
+      "test_out.cd-hit-para-tmp/test.fasta.div-1-o.clstr"
+    ]
+  },
+  {
+    "cmd": "cd-hit-2d -i test_out.cd-hit-para-tmp/test.fasta.div-0-o -i2 test_out.cd-hit-para-tmp/test.fasta.div-2 -o test_out.cd-hit-para-tmp/test.fasta.div-2.vs.0 -c 0.8 >> test_out.cd-hit-para-tmp/test.fasta.div-2.log",
+    "status": "wait",
+    "in": [
+      "test_out.cd-hit-para-tmp/test.fasta.div-0-o",
+      "test_out.cd-hit-para-tmp/test.fasta.div-2"
+    ],
+    "out": [
+      "test_out.cd-hit-para-tmp/test.fasta.div-2.vs.0",
+      "test_out.cd-hit-para-tmp/test.fasta.div-2.vs.0.clstr"
+    ]
+  },
+  {
+    "cmd": "cd-hit-2d -i test_out.cd-hit-para-tmp/test.fasta.div-1-o -i2 test_out.cd-hit-para-tmp/test.fasta.div-2.vs.0 -o test_out.cd-hit-para-tmp/test.fasta.div-2.vs.1 -c 0.8 >> test_out.cd-hit-para-tmp/test.fasta.div-2.log",
+    "status": "wait",
+    "in": [
+      "test_out.cd-hit-para-tmp/test.fasta.div-1-o",
+      "test_out.cd-hit-para-tmp/test.fasta.div-2.vs.0"
+    ],
+    "out": [
+      "test_out.cd-hit-para-tmp/test.fasta.div-2.vs.1",
+      "test_out.cd-hit-para-tmp/test.fasta.div-2.vs.1.clstr"
+    ]
+  },
+  {
+    "cmd": "cd-hit -i test_out.cd-hit-para-tmp/test.fasta.div-2.vs.1 -o test_out.cd-hit-para-tmp/test.fasta.div-2-o -c 0.8 >> test_out.cd-hit-para-tmp/test.fasta.div-2.log",
+    "status": "wait",
+    "in": [
+      "test_out.cd-hit-para-tmp/test.fasta.div-2.vs.1",
+      "test_out.cd-hit-para-tmp/test.fasta.div-2.vs.1.clstr"
+    ],
+    "out": [
+      "test_out.cd-hit-para-tmp/test.fasta.div-2-o",
+      "test_out.cd-hit-para-tmp/test.fasta.div-2-o.clstr"
+    ]
+  },
+  {
+    "cmd": "cd-hit-2d -i test_out.cd-hit-para-tmp/test.fasta.div-0-o -i2 test_out.cd-hit-para-tmp/test.fasta.div-3 -o test_out.cd-hit-para-tmp/test.fasta.div-3.vs.0 -c 0.8 >> test_out.cd-hit-para-tmp/test.fasta.div-3.log",
+    "status": "wait",
+    "in": [
+      "test_out.cd-hit-para-tmp/test.fasta.div-0-o",
+      "test_out.cd-hit-para-tmp/test.fasta.div-3"
+    ],
+    "out": [
+      "test_out.cd-hit-para-tmp/test.fasta.div-3.vs.0",
+      "test_out.cd-hit-para-tmp/test.fasta.div-3.vs.0.clstr"
+    ]
+  },
+  {
+    "cmd": "cd-hit-2d -i test_out.cd-hit-para-tmp/test.fasta.div-1-o -i2 test_out.cd-hit-para-tmp/test.fasta.div-3.vs.0 -o test_out.cd-hit-para-tmp/test.fasta.div-3.vs.1 -c 0.8 >> test_out.cd-hit-para-tmp/test.fasta.div-3.log",
+    "status": "wait",
+    "in": [
+      "test_out.cd-hit-para-tmp/test.fasta.div-1-o",
+      "test_out.cd-hit-para-tmp/test.fasta.div-3.vs.0"
+    ],
+    "out": [
+      "test_out.cd-hit-para-tmp/test.fasta.div-3.vs.1",
+      "test_out.cd-hit-para-tmp/test.fasta.div-3.vs.1.clstr"
+    ]
+  },
+  {
+    "cmd": "cd-hit-2d -i test_out.cd-hit-para-tmp/test.fasta.div-2-o -i2 test_out.cd-hit-para-tmp/test.fasta.div-3.vs.1 -o test_out.cd-hit-para-tmp/test.fasta.div-3.vs.2 -c 0.8 >> test_out.cd-hit-para-tmp/test.fasta.div-3.log",
+    "status": "wait",
+    "in": [
+      "test_out.cd-hit-para-tmp/test.fasta.div-2-o",
+      "test_out.cd-hit-para-tmp/test.fasta.div-3.vs.1"
+    ],
+    "out": [
+      "test_out.cd-hit-para-tmp/test.fasta.div-3.vs.2",
+      "test_out.cd-hit-para-tmp/test.fasta.div-3.vs.2.clstr"
+    ]
+  },
+  {
+    "cmd": "cd-hit -i test_out.cd-hit-para-tmp/test.fasta.div-3.vs.2 -o test_out.cd-hit-para-tmp/test.fasta.div-3-o -c 0.8 >> test_out.cd-hit-para-tmp/test.fasta.div-3.log",
+    "status": "wait",
+    "in": [
+      "test_out.cd-hit-para-tmp/test.fasta.div-3.vs.2",
+      "test_out.cd-hit-para-tmp/test.fasta.div-3.vs.2.clstr"
+    ],
+    "out": [
+      "test_out.cd-hit-para-tmp/test.fasta.div-3-o",
+      "test_out.cd-hit-para-tmp/test.fasta.div-3-o.clstr"
+    ]
+  }
+]
