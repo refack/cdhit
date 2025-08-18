@@ -20,6 +20,7 @@ def main():
         print(f"Error opening output files: {e}", file=sys.stderr)
         sys.exit(1)
 
+    seq_counts = [0] * num_divisions
     seq_count = 0
     try:
         with open(input_file, "r") as f_in:
@@ -29,6 +30,7 @@ def main():
                     if current_seq_lines:
                         file_index = seq_count % num_divisions
                         output_files[file_index].writelines(current_seq_lines)
+                        seq_counts[file_index] += 1
                         seq_count += 1
                     current_seq_lines = [line]
                 else:
@@ -37,6 +39,8 @@ def main():
             if current_seq_lines:
                 file_index = seq_count % num_divisions
                 output_files[file_index].writelines(current_seq_lines)
+                seq_counts[file_index] += 1
+                seq_count += 1
 
     except IOError as e:
         print(f"Error reading input file '{input_file}': {e}", file=sys.stderr)
@@ -44,6 +48,11 @@ def main():
     finally:
         for f in output_files:
             f.close()
+
+    print(f"Finished dividing. Total sequences: {seq_count}", file=sys.stderr)
+    for i, count in enumerate(seq_counts):
+        print(f"  File {i}: {count} sequences", file=sys.stderr)
+
 
 if __name__ == "__main__":
     main()

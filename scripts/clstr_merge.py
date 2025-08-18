@@ -19,8 +19,7 @@ def get_rep_name(cluster_lines):
     """Extracts the representative sequence name from a list of cluster lines."""
     for line in cluster_lines:
         if line.strip().endswith('*'):
-            # Example line: 0	2799aa, >PF04998.6|RPOC2_CHLRE/275-3073... *
-            match = re.search(r'>([^\s\.]+)\.\.\.', line)
+            match = re.search(r'>(\S+)', line)
             if match:
                 return match.group(1)
     return None
@@ -52,12 +51,12 @@ def main():
         for master_cluster in read_clusters(master_fh):
             master_rep_name = get_rep_name(master_cluster)
 
-            # Print the master cluster header and its members
             sys.stdout.write("".join(master_cluster))
 
             merged_seq_count = len(master_cluster) - 1
 
             if not master_rep_name:
+                print(f"Warning: No representative found in master cluster: {master_cluster[0]}", file=sys.stderr)
                 continue
 
             # Process slave files
@@ -66,14 +65,13 @@ def main():
                 for slave_cluster in read_clusters(fh):
                     slave_rep = get_rep_name(slave_cluster)
                     if slave_rep == master_rep_name:
-                        # Found the matching cluster in the slave file
                         for line in slave_cluster[1:]:
-                            if not line.strip().endswith('*'): # only add non-representatives
+                            if not line.strip().endswith('*'):
                                 parts = line.split('\t', 1)
                                 if len(parts) == 2:
                                     sys.stdout.write(f"{merged_seq_count}\t{parts[1]}")
                                 merged_seq_count += 1
-                        break # Move to the next slave file
+                        break
 
     for fh in slave_file_handles:
         fh.close()
