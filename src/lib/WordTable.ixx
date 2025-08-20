@@ -263,35 +263,60 @@ int CountWords(int total_words, WorkingBuffer& buf, bool is_est = false, int min
 	        auto word_index_count_size = word_index_counts.size();
 	        int remaining_words = total_words - current_index + 1;
 
-	        // Process each index-count pair for the current word
+#ifdef USE_AVX2
+            int k = 0;
+            for (; k <= word_index_count_size - 8; k += 8) {
+                __m256i counts1 = _mm256_loadu_si256((__m256i const*)&word_index_counts[k].count);
+                __m256i counts2 = _mm256_set1_epi32(word_count);
+                __m256i min_counts = _mm256_min_epi32(counts1, counts2);
+
+                int indices[8];
+                for(int i=0; i<8; ++i) indices[i] = word_index_counts[k+i].index;
+
+                for(int i=0; i<8; ++i) {
+                    if (buf.indexMapping.size() <= indices[i])
+	                    buf.indexMapping.resize(indices[i] + 1, 0);
+                    auto& mapping_value = buf.indexMapping[indices[i]];
+                    if (mapping_value == 0) {
+                        if (remaining_words < min_threshold) continue;
+                        buf.lookCounts.emplace_back(indices[i], ((int*)&min_counts)[i]);
+	                    mapping_value = buf.lookCounts.size();
+                    } else {
+                        buf.lookCounts[mapping_value - 1].count += ((int*)&min_counts)[i];
+                    }
+                }
+            }
+            for (; k < word_index_count_size; k++) {
+	            size_t min_count = word_index_counts[k].count < word_count ? word_index_counts[k].count : word_count;
+	            if (buf.indexMapping.size() <= word_index_counts[k].index)
+	                buf.indexMapping.resize(word_index_counts[k].index + 1, 0);
+	            auto& mapping_value = buf.indexMapping[word_index_counts[k].index];
+	            if (mapping_value == 0) {
+	                if (remaining_words < min_threshold) continue;
+	                buf.lookCounts.emplace_back(word_index_counts[k].index, min_count);
+	                mapping_value = buf.lookCounts.size();
+	            } else {
+	                buf.lookCounts[mapping_value - 1].count += min_count;
+	            }
+            }
+#else
 	        for (const auto& index_count_pair : word_index_counts) {
 	            size_t min_count = index_count_pair.count < word_count ? index_count_pair.count : word_count;
-
-	            //     IndexCount *ic = buf.lookCounts.data();
-	            //     for(j=0; j<buf.lookCounts.size; j++, ic++) buf.indexMapping[ ic->index ] = 0;
-	            //     buf.lookCounts.size = 0;
-
-	            // Resize index mapping if necessary
 	            if (buf.indexMapping.size() <= index_count_pair.index)
 	                buf.indexMapping.resize(index_count_pair.index + 1, 0);
 
 	            auto& mapping_value = buf.indexMapping[index_count_pair.index];
 
-	            // If the index is not yet mapped
 	            if (mapping_value == 0) {
-	                // Skip if the remaining words are below the threshold
 	                if (remaining_words < min_threshold)
 	                    continue;
-
-	                // Add a new entry to lookup_counts
 	                buf.lookCounts.emplace_back(index_count_pair.index, min_count);
 	                mapping_value = buf.lookCounts.size();
 	            } else {
-	                // Update the count for an existing entry
-	                // indexes are 1-based in lookCounts
 	                buf.lookCounts[mapping_value - 1].count += min_count;
 	            }
 	        }
+#endif
 	    }
 
 	    // Mark the end of lookup_counts

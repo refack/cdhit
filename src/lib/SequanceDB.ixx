@@ -189,18 +189,59 @@ int diag_test_aapn(int NAA1, char iseq2[], int len1, int len2, WorkingBuffer& bu
     int band_m = (band_b + band_width - 1 < band_e) ? band_b + band_width - 1 : band_e;
     int best_score = 0;
     int best_score2 = 0;
-    // int max_diag(0);
     int max_diag2 = 0;
     int imax_diag = 0;
+
+#ifdef USE_AVX2
+    __m256i best_score_vec = _mm256_setzero_si256();
+    __m256i best_score2_vec = _mm256_setzero_si256();
+    __m256i max_diag2_vec = _mm256_setzero_si256();
+    int i = band_b;
+    for (; i <= band_m - 7; i += 8) {
+        __m256i diag_score_vec = _mm256_loadu_si256((__m256i const*)&buffer.diag_score[i]);
+        __m256i diag_score2_vec = _mm256_loadu_si256((__m256i const*)&buffer.diag_score2[i]);
+        best_score_vec = _mm256_add_epi32(best_score_vec, diag_score_vec);
+        best_score2_vec = _mm256_add_epi32(best_score2_vec, diag_score2_vec);
+        max_diag2_vec = _mm256_max_epi32(max_diag2_vec, diag_score2_vec);
+    }
+    int temp_best_score[8], temp_best_score2[8], temp_max_diag2[8];
+    _mm256_storeu_si256((__m256i*)temp_best_score, best_score_vec);
+    _mm256_storeu_si256((__m256i*)temp_best_score2, best_score2_vec);
+    _mm256_storeu_si256((__m256i*)temp_max_diag2, max_diag2_vec);
+    for(int k=0; k<8; ++k) {
+        best_score += temp_best_score[k];
+        best_score2 += temp_best_score2[k];
+        if(temp_max_diag2[k] > max_diag2) {
+            max_diag2 = temp_max_diag2[k];
+        }
+    }
+
+    // Find imax_diag
+    for (int k=0; k<band_m - band_b + 1; ++k) {
+        if(buffer.diag_score2[band_b+k] == max_diag2) {
+            imax_diag = band_b+k;
+            break;
+        }
+    }
+
+    for (; i <= band_m; i++) {
+        best_score += buffer.diag_score[i];
+        best_score2 += buffer.diag_score2[i];
+        if (buffer.diag_score2[i] > max_diag2) {
+            max_diag2 = buffer.diag_score2[i];
+            imax_diag = i;
+        }
+    }
+#else
     for (auto i = band_b; i <= band_m; i++) {
         best_score += buffer.diag_score[i];
         best_score2 += buffer.diag_score2[i];
         if (buffer.diag_score2[i] > max_diag2) {
             max_diag2 = buffer.diag_score2[i];
-            // max_diag = diag_score[i];
             imax_diag = i;
         }
     }
+#endif
     int from = band_b;
     int end = band_m;
     int score = best_score;
@@ -320,18 +361,57 @@ int diag_test_aapn_est(int NAA1, const char iseq2[], int len1, int len2, Working
     auto band_m = (band_b + band_width - 1 < band_e) ? band_b + band_width - 1 : band_e;
     int best_score = 0;
     int best_score2 = 0;
-    // int max_diag = 0;
     int max_diag2 = 0;
     int imax_diag = 0;
+
+#ifdef USE_AVX2
+    __m256i best_score_vec = _mm256_setzero_si256();
+    __m256i best_score2_vec = _mm256_setzero_si256();
+    __m256i max_diag2_vec = _mm256_setzero_si256();
+    size_t i = band_b;
+    for (; i <= band_m - 7; i += 8) {
+        __m256i diag_score_vec = _mm256_loadu_si256((__m256i const*)&buffer.diag_score[i]);
+        __m256i diag_score2_vec = _mm256_loadu_si256((__m256i const*)&buffer.diag_score2[i]);
+        best_score_vec = _mm256_add_epi32(best_score_vec, diag_score_vec);
+        best_score2_vec = _mm256_add_epi32(best_score2_vec, diag_score2_vec);
+        max_diag2_vec = _mm256_max_epi32(max_diag2_vec, diag_score2_vec);
+    }
+    int temp_best_score[8], temp_best_score2[8], temp_max_diag2[8];
+    _mm256_storeu_si256((__m256i*)temp_best_score, best_score_vec);
+    _mm256_storeu_si256((__m256i*)temp_best_score2, best_score2_vec);
+    _mm256_storeu_si256((__m256i*)temp_max_diag2, max_diag2_vec);
+    for(int k=0; k<8; ++k) {
+        best_score += temp_best_score[k];
+        best_score2 += temp_best_score2[k];
+        if(temp_max_diag2[k] > max_diag2) {
+            max_diag2 = temp_max_diag2[k];
+        }
+    }
+    for (; i <= band_m; i++) {
+        best_score += buffer.diag_score[i];
+        best_score2 += buffer.diag_score2[i];
+        if (buffer.diag_score2[i] > max_diag2) {
+            max_diag2 = buffer.diag_score2[i];
+            imax_diag = i;
+        }
+    }
+    // Find imax_diag
+    for (size_t k=0; k<band_m - band_b + 1; ++k) {
+        if(buffer.diag_score2[band_b+k] == max_diag2) {
+            imax_diag = band_b+k;
+            break;
+        }
+    }
+#else
     for (auto i = band_b; i <= band_m; i++) {
         best_score += buffer.diag_score[i];
         best_score2 += buffer.diag_score2[i];
         if (buffer.diag_score2[i] > max_diag2) {
             max_diag2 = buffer.diag_score2[i];
-            // max_diag = diag_score[i];
             imax_diag = i;
         }
     }
+#endif
     int from = band_b;
     int end = band_m;
     int score = best_score;
@@ -521,6 +601,148 @@ int local_band_align(const char iseq1[], const char iseq2[], int ilen1, int ilen
     int gap_open[2] = {mat.get_gap(), mat.get_extra_gap()};
     int max_diag = band_center - band_left;
     int extra_score[4] = {4, 3, 2, 1};
+
+#ifdef USE_AVX2
+    for (size_t i = 1; i <= len1; i++) {
+        int J0 = 1 - band_left - i;
+        int J1 = len2 - band_left - i;
+        if (J0 < 0) J0 = 0;
+        if (J1 >= band_width) J1 = band_width;
+
+        int j1 = J0;
+        for (; j1 <= J1 - 8; j1 += 8) {
+            int j = j1 + i + band_left;
+
+            // 1. Load substitution scores
+            int s_scores[8];
+            for(int k=0; k<8; ++k) {
+                int ci = iseq1[i - 1];
+                int cj = iseq2[j + k - 1];
+                s_scores[k] = mat.matrix[ci][cj];
+                size_t raw_dist = std::abs((j1+k) - max_diag);
+                int extra = extra_score[raw_dist & 3];
+                s_scores[k] += extra * (s_scores[k] > 0);
+            }
+            __m256i sij_vec = _mm256_loadu_si256((__m256i const*)s_scores);
+
+            // 2. Calculate diagonal scores
+            __m256i diag_scores = _mm256_loadu_si256((__m256i const*)&score_mat[i - 1][j1]);
+            diag_scores = _mm256_add_epi32(diag_scores, sij_vec);
+
+            // 3. Calculate scores from top
+            int gap0 = gap_open[(i == len1) | (j == len2)];
+            __m256i gap_vec = _mm256_set1_epi32(gap0);
+            __m256i top_scores = _mm256_loadu_si256((__m256i const*)&score_mat[i - 1][j1 + 1]);
+            top_scores = _mm256_add_epi32(top_scores, gap_vec);
+
+            // 4. Calculate scores from left
+            __m256i left_scores = _mm256_loadu_si256((__m256i const*)&score_mat[i][j1 - 1]);
+            left_scores = _mm256_add_epi32(left_scores, gap_vec);
+
+            // 5. Find max
+            __m256i best_scores = _mm256_max_epi32(diag_scores, _mm256_max_epi32(top_scores, left_scores));
+
+            // 6. Store scores
+            _mm256_storeu_si256((__m256i*)&score_mat[i][j1], best_scores);
+
+            // 7. Update back pointers (simplified)
+            __m256i back_vec = _mm256_setzero_si256();
+            __m256i cmp_diag = _mm256_cmpeq_epi32(best_scores, diag_scores);
+            __m256i cmp_left = _mm256_cmpeq_epi32(best_scores, left_scores);
+            __m256i cmp_top = _mm256_cmpeq_epi32(best_scores, top_scores);
+
+            back_vec = _mm256_or_si256(back_vec, _mm256_and_si256(cmp_diag, _mm256_set1_epi32(DP_BACK_LEFT_TOP)));
+            back_vec = _mm256_or_si256(back_vec, _mm256_and_si256(cmp_left, _mm256_set1_epi32(DP_BACK_LEFT)));
+            back_vec = _mm256_or_si256(back_vec, _mm256_and_si256(cmp_top, _mm256_set1_epi32(DP_BACK_TOP)));
+            _mm256_storeu_si256((__m256i*)&back_mat[i][j1], back_vec);
+        }
+
+        // Process remaining elements serially
+        for (; j1 <= J1; j1++) {
+            int j = j1 + i + band_left;
+
+            int ci = iseq1[i - 1];
+            int cj = iseq2[j - 1];
+            int sij = mat.matrix[ci][cj];
+
+            /* extra score according to the distance to the best diagonal */
+            size_t raw_dist = std::abs(j1 - max_diag);
+            int extra = extra_score[raw_dist & 3]; // max distance 3
+            sij += extra * (sij > 0);
+
+            int back = DP_BACK_LEFT_TOP;
+            best_score1 = score_mat[i - 1][j1] + sij;
+            int gap0 = gap_open[(i == len1) | (j == len2)];
+
+            if (j1 > 0) {
+                int gap = gap0;
+                if (back_mat[i][j1 - 1] == DP_BACK_LEFT)
+                    gap = mat.get_extra_gap();
+                size_t score = score_mat[i][j1 - 1] + gap;
+                if (score > best_score1) {
+                    back = DP_BACK_LEFT;
+                    best_score1 = score;
+                }
+            }
+            if (j1 + 1 < band_width) {
+                int gap = gap0;
+                if (back_mat[i - 1][j1 + 1] == DP_BACK_TOP)
+                    gap = mat.get_extra_gap();
+                size_t score = score_mat[i - 1][j1 + 1] + gap;
+                if (score > best_score1) {
+                    back = DP_BACK_TOP;
+                    best_score1 = score;
+                }
+            }
+            score_mat[i][j1] = best_score1;
+            back_mat[i][j1] = back;
+        }
+    }
+#else
+    for (size_t i = 1; i <= len1; i++) {
+        int J0 = 1 - band_left - i;
+        int J1 = len2 - band_left - i;
+        if (J0 < 0) J0 = 0;
+        if (J1 >= band_width) J1 = band_width;
+
+        for (int j1 = J0; j1 <= J1; j1++) {
+            int j = j1 + i + band_left;
+            int ci = iseq1[i - 1];
+            int cj = iseq2[j - 1];
+            int sij = mat.matrix[ci][cj];
+
+            size_t raw_dist = std::abs(j1 - max_diag);
+            int extra = extra_score[raw_dist & 3];
+            sij += extra * (sij > 0);
+
+            int back = DP_BACK_LEFT_TOP;
+            best_score1 = score_mat[i - 1][j1] + sij;
+            int gap0 = gap_open[(i == len1) | (j == len2)];
+
+            if (j1 > 0) {
+                int gap = gap0;
+                if (back_mat[i][j1 - 1] == DP_BACK_LEFT) gap = mat.get_extra_gap();
+                size_t score = score_mat[i][j1 - 1] + gap;
+                if (score > best_score1) {
+                    back = DP_BACK_LEFT;
+                    best_score1 = score;
+                }
+            }
+            if (j1 + 1 < band_width) {
+                int gap = gap0;
+                if (back_mat[i - 1][j1 + 1] == DP_BACK_TOP) gap = mat.get_extra_gap();
+                size_t score = score_mat[i - 1][j1 + 1] + gap;
+                if (score > best_score1) {
+                    back = DP_BACK_TOP;
+                    best_score1 = score;
+                }
+            }
+            score_mat[i][j1] = best_score1;
+            back_mat[i][j1] = back;
+        }
+    }
+#endif
+#else
     for (size_t i = 1; i <= len1; i++) {
         int J0 = 1 - band_left - i;
         int J1 = len2 - band_left - i;
@@ -566,10 +788,9 @@ int local_band_align(const char iseq1[], const char iseq2[], int ilen1, int ilen
             }
             score_mat[i][j1] = best_score1;
             back_mat[i][j1] = back;
-            // printf( "%2i(%2i) ", best_score1, iden_no1 );
         }
-        // printf( "\n" );
     }
+#endif
     size_t i = 0;
     size_t j = 0;
     if (len2 - band_left < len1) {

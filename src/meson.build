@@ -5,6 +5,17 @@ ld_flags = []
 
 # Detect the compiler and set flags accordingly
 compiler = meson.get_compiler('cpp')
+
+# Add AVX2 support
+if get_option('enable_avx2')
+  if compiler.get_id() == 'gcc' or compiler.get_id() == 'clang'
+    common_flags += ['-mavx2']
+  elif compiler.get_id() == 'msvc'
+    common_flags += ['/arch:AVX2']
+  endif
+  extra_defines += ['-DUSE_AVX2']
+endif
+
 if compiler.get_id() == 'gcc' or compiler.get_id() == 'clang'
   if get_option('openmp')
     extra_defines += ['-DOPENMP', '-fopenmp']
@@ -34,7 +45,11 @@ if max_seq_value > 0
 endif
 extra_defines += ['-D_MAX_UAA_=4']
 
-cpp_flags = common_flags + extra_defines
+if compiler.get_id() == 'clang'
+  cpp_flags = common_flags + extra_defines + ['-fmodules', '-fexperimental-library']
+else
+  cpp_flags = common_flags + extra_defines + ['-fmodules-ts']
+endif
 add_project_arguments(cpp_flags, language: 'cpp')
 add_project_link_arguments(ld_flags, language: 'cpp')
 
@@ -62,10 +77,15 @@ modules_sources = [
   join_paths(src_dir, 'lib', 'WorkingBuffer.ixx'),
   join_paths(src_dir, 'lib', 'WorkingParam.ixx'),
 ]
-if meson.backend() == 'ninja'
-  modules_sources += [join_paths(src_dir, 'microsoft', 'STL', 'std.ixx')]
+if compiler.get_id() == 'msvc'
+  if meson.backend() == 'ninja'
+    modules_sources += [join_paths(src_dir, 'microsoft', 'STL', 'std.ixx')]
+  endif
 endif
-incs = include_directories('C:/bin/dev/Microsoft/VS2022Community/VC/Tools/MSVC/14.43.34808/modules')
+incs = []
+if compiler.get_id() == 'msvc'
+  incs = include_directories('C:/bin/dev/Microsoft/VS2022Community/VC/Tools/MSVC/14.43.34808/modules')
+endif
 
 
 # Source files for executables
