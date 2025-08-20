@@ -1,0 +1,269 @@
+2025-08-18 20:51:31,381 - INFO - Starting cd-hit-para.py with arguments: Namespace(input_file='UNKNOWN100.fasta', output_directory='test_simple', program='cd-hit-est', hosts_file=None, local_cpus=1, segments=2, queue_jobs=0, queue_type='PBS', restart_file=None, dask_scheduler=None)
+2025-08-18 20:51:31,381 - INFO - Unknown arguments passed to cd-hit: -c 0.8 -r 0 -sc 1 -sf 1
+2025-08-18 20:51:31,381 - INFO - Setting up environment
+2025-08-18 20:51:31,382 - INFO - cd_hit_exe: E:\1work\CFF\cdhit-scripts\cd-hit-est.cmd
+2025-08-18 20:51:31,382 - INFO - cd_hit_2d_exe: E:\1work\CFF\cdhit-scripts\cd-hit-est-2d.cmd
+2025-08-18 20:51:31,383 - INFO - cd_hit_div_exe: E:\1work\CFF\cdhit-scripts\scripts\cd-hit-div.py
+2025-08-18 20:51:31,383 - INFO - clstr_merge_exe: E:\1work\CFF\cdhit-scripts\scripts\clstr_merge.py
+2025-08-18 20:51:31,383 - INFO - work_dir: E:\1work\CFF\cdhit-scripts\test_simple.cd-hit-para-tmp
+2025-08-18 20:51:31,383 - INFO - restart_file: test_simple.restart
+2025-08-18 20:51:31,384 - INFO - indiv: E:\1work\CFF\cdhit-scripts\test_simple.cd-hit-para-tmp\UNKNOWN100
+2025-08-18 20:51:31,384 - INFO - Setting up Dask cluster
+2025-08-18 20:51:31,384 - INFO - Setting up LocalCluster with 1 workers
+2025-08-18 20:51:33,144 - INFO - Dask dashboard link: http://127.0.0.1:8787/status
+2025-08-18 20:51:33,144 - INFO - Removing existing working directory: E:\1work\CFF\cdhit-scripts\test_simple.cd-hit-para-tmp
+2025-08-18 21:02:26,690 - INFO - Starting cd-hit-para.py with arguments: Namespace(input_file='UNKNOWN100.fasta', output_directory='test_simple', program='cd-hit-est', hosts_file=None, local_cpus=1, segments=2, queue_jobs=0, queue_type='PBS', dask_scheduler=None)
+2025-08-18 21:02:26,691 - INFO - Unknown arguments passed to cd-hit: -c 0.8 -r 0 -sc 1 -sf 1
+2025-08-18 21:02:26,691 - INFO - Setting up environment
+2025-08-18 21:02:26,691 - INFO - cd_hit_exe: E:\1work\CFF\cdhit-scripts\cd-hit-est.cmd
+2025-08-18 21:02:26,692 - INFO - cd_hit_2d_exe: E:\1work\CFF\cdhit-scripts\cd-hit-est-2d.cmd
+2025-08-18 21:02:26,692 - INFO - cd_hit_div_exe: E:\1work\CFF\cdhit-scripts\scripts\cd-hit-div.py
+2025-08-18 21:02:26,692 - INFO - work_dir: E:\1work\CFF\cdhit-scripts\test_simple.cd-hit-para-tmp
+2025-08-18 21:02:26,692 - INFO - indiv: E:\1work\CFF\cdhit-scripts\test_simple.cd-hit-para-tmp\UNKNOWN100
+2025-08-18 21:02:26,693 - INFO - Working directory E:\1work\CFF\cdhit-scripts\test_simple.cd-hit-para-tmp already exists. Will reuse existing files.
+2025-08-18 21:02:26,693 - INFO - Setting up Dask cluster
+2025-08-18 21:02:26,693 - INFO - Setting up LocalCluster with 1 workers
+2025-08-18 21:02:28,392 - INFO - Dask dashboard link: http://127.0.0.1:8787/status
+2025-08-18 21:02:28,392 - INFO - Starting tree reduction execution.
+2025-08-18 21:02:28,392 - INFO - Step 1: Splitting database
+2025-08-18 21:02:28,393 - INFO - Segment files already exist, skipping database split.
+2025-08-18 21:02:28,393 - INFO - Step 2: Building level 0 (self-clustering) tasks
+2025-08-18 21:02:28,394 - INFO - Step 3: Building reduction tree
+2025-08-18 21:02:28,394 - INFO - Building level 1: 2 tasks -> 1 tasks
+2025-08-18 21:02:28,394 - INFO - Step 4: Computing final result
+2025-08-18 21:02:28,904 - INFO - Tree reduction computation finished.
+2025-08-18 21:02:28,904 - INFO - 
+Execution finished. Finalizing results...
+2025-08-18 21:02:28,904 - INFO - Copying final representative sequences to test_simple
+2025-08-18 21:02:28,906 - INFO - Renumbering final cluster file to test_simple.clstr
+2025-08-18 21:02:28,906 - INFO - Renumbering cluster file E:\1work\CFF\cdhit-scripts\test_simple.cd-hit-para-tmp\level-1-pair-0.clstr to test_simple.clstr
+2025-08-18 21:02:28,907 - INFO - Done.
+2025-08-18 21:02:28,907 - INFO - Closing Dask client
+2025-08-18 21:03:25,002 - INFO - Starting cd-hit-para.py with arguments: Namespace(input_file='UNKNOWN.fasta', output_directory='test_simple', program='cd-hit-est', hosts_file=None, local_cpus=10, segments=10, queue_jobs=0, queue_type='PBS', dask_scheduler=None)
+2025-08-18 21:03:25,002 - INFO - Unknown arguments passed to cd-hit: -c 0.8 -r 0 -sc 1 -sf 1
+2025-08-18 21:03:25,002 - INFO - Setting up environment
+2025-08-18 21:03:25,003 - INFO - cd_hit_exe: E:\1work\CFF\cdhit-scripts\cd-hit-est.cmd
+2025-08-18 21:03:25,003 - INFO - cd_hit_2d_exe: E:\1work\CFF\cdhit-scripts\cd-hit-est-2d.cmd
+2025-08-18 21:03:25,003 - INFO - cd_hit_div_exe: E:\1work\CFF\cdhit-scripts\scripts\cd-hit-div.py
+2025-08-18 21:03:25,003 - INFO - work_dir: E:\1work\CFF\cdhit-scripts\test_simple.cd-hit-para-tmp
+2025-08-18 21:03:25,004 - INFO - indiv: E:\1work\CFF\cdhit-scripts\test_simple.cd-hit-para-tmp\UNKNOWN
+2025-08-18 21:03:25,004 - INFO - Working directory E:\1work\CFF\cdhit-scripts\test_simple.cd-hit-para-tmp already exists. Will reuse existing files.
+2025-08-18 21:03:25,004 - INFO - Setting up Dask cluster
+2025-08-18 21:03:25,004 - INFO - Setting up LocalCluster with 10 workers
+2025-08-18 21:03:27,609 - INFO - Dask dashboard link: http://127.0.0.1:8787/status
+2025-08-18 21:03:27,610 - INFO - Starting tree reduction execution.
+2025-08-18 21:03:27,610 - INFO - Step 1: Splitting database
+2025-08-18 21:03:27,611 - INFO - Executing command: E:\1work\CFF\cdhit-scripts\.venv\Scripts\python.exe E:\1work\CFF\cdhit-scripts\scripts\cd-hit-div.py E:\1work\CFF\cdhit-scripts\UNKNOWN.fasta E:\1work\CFF\cdhit-scripts\test_simple.cd-hit-para-tmp\UNKNOWN 10
+2025-08-18 21:03:27,611 - INFO -   CWD: E:\1work\CFF\cdhit-scripts\test_simple.cd-hit-para-tmp
+2025-08-18 21:03:27,611 - INFO -   Log file: E:\1work\CFF\cdhit-scripts\test_simple.cd-hit-para-tmp\cd-hit-div.log
+2025-08-18 21:03:31,462 - INFO - Command finished successfully: E:\1work\CFF\cdhit-scripts\.venv\Scripts\python.exe E:\1work\CFF\cdhit-scripts\scripts\cd-hit-div.py E:\1work\CFF\cdhit-scripts\UNKNOWN.fasta E:\1work\CFF\cdhit-scripts\test_simple.cd-hit-para-tmp\UNKNOWN 10
+2025-08-18 21:03:31,462 - INFO - Step 2: Building level 0 (self-clustering) tasks
+2025-08-18 21:03:31,463 - INFO - Step 3: Building reduction tree
+2025-08-18 21:03:31,469 - INFO - Building level 1: 10 tasks -> 5 tasks
+2025-08-18 21:03:31,470 - INFO - Building level 2: 5 tasks -> 2 tasks
+2025-08-18 21:03:31,470 - CRITICAL - A critical error occurred during execution: Truth of Delayed objects is not supported
+2025-08-18 21:03:31,470 - INFO - Closing Dask client
+2025-08-18 21:05:39,071 - INFO - Starting cd-hit-para.py with arguments: Namespace(input_file='UNKNOWN2500.fasta', output_directory='test_unk_2500', program='cd-hit-est', hosts_file=None, local_cpus=10, segments=10, queue_jobs=0, queue_type='PBS', dask_scheduler=None)
+2025-08-18 21:05:39,072 - INFO - Unknown arguments passed to cd-hit: -c 0.8 -r 0 -sc 1 -sf 1
+2025-08-18 21:05:39,072 - INFO - Setting up environment
+2025-08-18 21:05:39,072 - INFO - cd_hit_exe: E:\1work\CFF\cdhit-scripts\cd-hit-est.cmd
+2025-08-18 21:05:39,073 - INFO - cd_hit_2d_exe: E:\1work\CFF\cdhit-scripts\cd-hit-est-2d.cmd
+2025-08-18 21:05:39,073 - INFO - cd_hit_div_exe: E:\1work\CFF\cdhit-scripts\scripts\cd-hit-div.py
+2025-08-18 21:05:39,073 - INFO - work_dir: E:\1work\CFF\cdhit-scripts\test_unk_2500.cd-hit-para-tmp
+2025-08-18 21:05:39,073 - INFO - indiv: E:\1work\CFF\cdhit-scripts\test_unk_2500.cd-hit-para-tmp\UNKNOWN2500
+2025-08-18 21:05:39,073 - INFO - Creating working directory: E:\1work\CFF\cdhit-scripts\test_unk_2500.cd-hit-para-tmp
+2025-08-18 21:05:39,074 - INFO - Setting up Dask cluster
+2025-08-18 21:05:39,074 - INFO - Setting up LocalCluster with 10 workers
+2025-08-18 21:05:41,394 - INFO - Dask dashboard link: http://127.0.0.1:8787/status
+2025-08-18 21:05:41,394 - INFO - Starting tree reduction execution.
+2025-08-18 21:05:41,395 - INFO - Step 1: Splitting database
+2025-08-18 21:05:41,395 - INFO - Executing command: E:\1work\CFF\cdhit-scripts\.venv\Scripts\python.exe E:\1work\CFF\cdhit-scripts\scripts\cd-hit-div.py E:\1work\CFF\cdhit-scripts\UNKNOWN2500.fasta E:\1work\CFF\cdhit-scripts\test_unk_2500.cd-hit-para-tmp\UNKNOWN2500 10
+2025-08-18 21:05:41,395 - INFO -   CWD: E:\1work\CFF\cdhit-scripts\test_unk_2500.cd-hit-para-tmp
+2025-08-18 21:05:41,396 - INFO -   Log file: E:\1work\CFF\cdhit-scripts\test_unk_2500.cd-hit-para-tmp\cd-hit-div.log
+2025-08-18 21:05:41,466 - INFO - Command finished successfully: E:\1work\CFF\cdhit-scripts\.venv\Scripts\python.exe E:\1work\CFF\cdhit-scripts\scripts\cd-hit-div.py E:\1work\CFF\cdhit-scripts\UNKNOWN2500.fasta E:\1work\CFF\cdhit-scripts\test_unk_2500.cd-hit-para-tmp\UNKNOWN2500 10
+2025-08-18 21:05:41,466 - INFO - Step 2: Building level 0 (self-clustering) tasks
+2025-08-18 21:05:41,467 - INFO - Step 3: Building reduction tree
+2025-08-18 21:05:41,467 - INFO - Building level 1: 10 tasks -> 5 tasks
+2025-08-18 21:05:41,468 - INFO - Building level 2: 5 tasks -> 2 tasks
+2025-08-18 21:05:41,468 - CRITICAL - A critical error occurred during execution: Truth of Delayed objects is not supported
+2025-08-18 21:05:41,469 - INFO - Closing Dask client
+2025-08-18 21:10:00,939 - INFO - Starting cd-hit-para.py with arguments: Namespace(input_file='UNKNOWN2500.fasta', output_directory='test_unk_2500', program='cd-hit-est', hosts_file=None, local_cpus=10, segments=10, queue_jobs=0, queue_type='PBS', dask_scheduler=None)
+2025-08-18 21:10:00,940 - INFO - Unknown arguments passed to cd-hit: -c 0.8 -r 0 -sc 1 -sf 1
+2025-08-18 21:10:00,940 - INFO - Setting up environment
+2025-08-18 21:10:00,940 - INFO - cd_hit_exe: E:\1work\CFF\cdhit-scripts\cd-hit-est.cmd
+2025-08-18 21:10:00,940 - INFO - cd_hit_2d_exe: E:\1work\CFF\cdhit-scripts\cd-hit-est-2d.cmd
+2025-08-18 21:10:00,941 - INFO - cd_hit_div_exe: E:\1work\CFF\cdhit-scripts\scripts\cd-hit-div.py
+2025-08-18 21:10:00,941 - INFO - work_dir: E:\1work\CFF\cdhit-scripts\test_unk_2500.cd-hit-para-tmp
+2025-08-18 21:10:00,941 - INFO - indiv: E:\1work\CFF\cdhit-scripts\test_unk_2500.cd-hit-para-tmp\UNKNOWN2500
+2025-08-18 21:10:00,941 - INFO - Creating working directory: E:\1work\CFF\cdhit-scripts\test_unk_2500.cd-hit-para-tmp
+2025-08-18 21:10:00,942 - INFO - Setting up Dask cluster
+2025-08-18 21:10:00,942 - INFO - Setting up LocalCluster with 10 workers
+2025-08-18 21:10:03,233 - INFO - Dask dashboard link: http://127.0.0.1:8787/status
+2025-08-18 21:10:03,234 - INFO - Starting tree reduction execution.
+2025-08-18 21:10:03,234 - INFO - Step 1: Splitting database
+2025-08-18 21:10:03,235 - INFO - Executing command: E:\1work\CFF\cdhit-scripts\.venv\Scripts\python.exe E:\1work\CFF\cdhit-scripts\scripts\cd-hit-div.py E:\1work\CFF\cdhit-scripts\UNKNOWN2500.fasta E:\1work\CFF\cdhit-scripts\test_unk_2500.cd-hit-para-tmp\UNKNOWN2500 10
+2025-08-18 21:10:03,235 - INFO -   CWD: E:\1work\CFF\cdhit-scripts\test_unk_2500.cd-hit-para-tmp
+2025-08-18 21:10:03,235 - INFO -   Log file: E:\1work\CFF\cdhit-scripts\test_unk_2500.cd-hit-para-tmp\cd-hit-div.log
+2025-08-18 21:10:03,312 - INFO - Command finished successfully: E:\1work\CFF\cdhit-scripts\.venv\Scripts\python.exe E:\1work\CFF\cdhit-scripts\scripts\cd-hit-div.py E:\1work\CFF\cdhit-scripts\UNKNOWN2500.fasta E:\1work\CFF\cdhit-scripts\test_unk_2500.cd-hit-para-tmp\UNKNOWN2500 10
+2025-08-18 21:10:03,312 - INFO - Step 2: Building level 0 (self-clustering) tasks
+2025-08-18 21:10:03,313 - INFO - Step 3: Building reduction tree
+2025-08-18 21:10:03,313 - INFO - Building level 1: 10 tasks -> 5 tasks
+2025-08-18 21:10:03,314 - INFO - Building level 2: 5 tasks -> 2 tasks
+2025-08-18 21:10:03,314 - CRITICAL - A critical error occurred during execution: Truth of Delayed objects is not supported
+2025-08-18 21:10:03,314 - INFO - Closing Dask client
+2025-08-18 21:14:01,625 - INFO - Starting cd-hit-para.py with arguments: Namespace(input_file='UNKNOWN2500.fasta', output_directory='test_unk_2500_1', program='cd-hit-est', hosts_file=None, local_cpus=10, segments=10, queue_jobs=0, queue_type='PBS', dask_scheduler=None)
+2025-08-18 21:14:01,626 - INFO - Unknown arguments passed to cd-hit: -c 0.8 -r 0 -sc 1 -sf 1
+2025-08-18 21:14:01,626 - INFO - Setting up environment
+2025-08-18 21:14:01,626 - INFO - cd_hit_exe: E:\1work\CFF\cdhit-scripts\cd-hit-est.cmd
+2025-08-18 21:14:01,626 - INFO - cd_hit_2d_exe: E:\1work\CFF\cdhit-scripts\cd-hit-est-2d.cmd
+2025-08-18 21:14:01,627 - INFO - cd_hit_div_exe: E:\1work\CFF\cdhit-scripts\scripts\cd-hit-div.py
+2025-08-18 21:14:01,627 - INFO - work_dir: E:\1work\CFF\cdhit-scripts\test_unk_2500_1.cd-hit-para-tmp
+2025-08-18 21:14:01,627 - INFO - indiv: E:\1work\CFF\cdhit-scripts\test_unk_2500_1.cd-hit-para-tmp\UNKNOWN2500
+2025-08-18 21:14:01,627 - INFO - Creating working directory: E:\1work\CFF\cdhit-scripts\test_unk_2500_1.cd-hit-para-tmp
+2025-08-18 21:14:01,628 - INFO - Setting up Dask cluster
+2025-08-18 21:14:01,628 - INFO - Setting up LocalCluster with 10 workers
+2025-08-18 21:14:04,004 - INFO - Dask dashboard link: http://127.0.0.1:8787/status
+2025-08-18 21:14:04,005 - INFO - Starting tree reduction execution.
+2025-08-18 21:14:04,005 - INFO - Step 1: Splitting database
+2025-08-18 21:14:04,005 - INFO - Executing command: E:\1work\CFF\cdhit-scripts\.venv\Scripts\python.exe E:\1work\CFF\cdhit-scripts\scripts\cd-hit-div.py E:\1work\CFF\cdhit-scripts\UNKNOWN2500.fasta E:\1work\CFF\cdhit-scripts\test_unk_2500_1.cd-hit-para-tmp\UNKNOWN2500 10
+2025-08-18 21:14:04,006 - INFO -   CWD: E:\1work\CFF\cdhit-scripts\test_unk_2500_1.cd-hit-para-tmp
+2025-08-18 21:14:04,006 - INFO -   Log file: E:\1work\CFF\cdhit-scripts\test_unk_2500_1.cd-hit-para-tmp\cd-hit-div.log
+2025-08-18 21:14:04,073 - INFO - Command finished successfully: E:\1work\CFF\cdhit-scripts\.venv\Scripts\python.exe E:\1work\CFF\cdhit-scripts\scripts\cd-hit-div.py E:\1work\CFF\cdhit-scripts\UNKNOWN2500.fasta E:\1work\CFF\cdhit-scripts\test_unk_2500_1.cd-hit-para-tmp\UNKNOWN2500 10
+2025-08-18 21:14:04,073 - INFO - Step 2: Building level 0 (self-clustering) tasks
+2025-08-18 21:14:04,074 - INFO - Step 3: Building reduction tree
+2025-08-18 21:14:04,074 - INFO - Building level 1: 10 tasks -> 5 tasks
+2025-08-18 21:14:04,075 - INFO - Building level 2: 5 tasks -> 2 tasks
+2025-08-18 21:14:04,075 - CRITICAL - A critical error occurred during execution: Truth of Delayed objects is not supported
+2025-08-18 21:14:04,075 - INFO - Closing Dask client
+2025-08-18 21:22:05,016 - INFO - Starting cd-hit-para.py with arguments: Namespace(input_file='UNKNOWN2500.fasta', output_directory='test_unk_2500_2', program='cd-hit-est', hosts_file=None, local_cpus=10, segments=10, queue_jobs=0, queue_type='PBS', dask_scheduler=None)
+2025-08-18 21:22:05,016 - INFO - Unknown arguments passed to cd-hit: -c 0.8 -r 0 -sc 1 -sf 1
+2025-08-18 21:22:05,016 - INFO - Setting up environment
+2025-08-18 21:22:05,017 - INFO - cd_hit_exe: E:\1work\CFF\cdhit-scripts\cd-hit-est.cmd
+2025-08-18 21:22:05,017 - INFO - cd_hit_2d_exe: E:\1work\CFF\cdhit-scripts\cd-hit-est-2d.cmd
+2025-08-18 21:22:05,017 - INFO - cd_hit_div_exe: E:\1work\CFF\cdhit-scripts\scripts\cd-hit-div.py
+2025-08-18 21:22:05,017 - INFO - work_dir: E:\1work\CFF\cdhit-scripts\test_unk_2500_2.cd-hit-para-tmp
+2025-08-18 21:22:05,018 - INFO - indiv: E:\1work\CFF\cdhit-scripts\test_unk_2500_2.cd-hit-para-tmp\UNKNOWN2500
+2025-08-18 21:22:05,018 - INFO - Creating working directory: E:\1work\CFF\cdhit-scripts\test_unk_2500_2.cd-hit-para-tmp
+2025-08-18 21:22:05,018 - INFO - Setting up Dask cluster
+2025-08-18 21:22:05,018 - INFO - Setting up LocalCluster with 10 workers
+2025-08-18 21:22:07,581 - INFO - Dask dashboard link: http://127.0.0.1:8787/status
+2025-08-18 21:22:07,582 - INFO - Starting tree reduction execution.
+2025-08-18 21:22:07,582 - INFO - Step 1: Splitting database
+2025-08-18 21:22:07,582 - INFO - Executing command: E:\1work\CFF\cdhit-scripts\.venv\Scripts\python.exe E:\1work\CFF\cdhit-scripts\scripts\cd-hit-div.py E:\1work\CFF\cdhit-scripts\UNKNOWN2500.fasta E:\1work\CFF\cdhit-scripts\test_unk_2500_2.cd-hit-para-tmp\UNKNOWN2500 10
+2025-08-18 21:22:07,583 - INFO -   CWD: E:\1work\CFF\cdhit-scripts\test_unk_2500_2.cd-hit-para-tmp
+2025-08-18 21:22:07,583 - INFO -   Log file: E:\1work\CFF\cdhit-scripts\test_unk_2500_2.cd-hit-para-tmp\cd-hit-div.log
+2025-08-18 21:22:07,659 - INFO - Command finished successfully: E:\1work\CFF\cdhit-scripts\.venv\Scripts\python.exe E:\1work\CFF\cdhit-scripts\scripts\cd-hit-div.py E:\1work\CFF\cdhit-scripts\UNKNOWN2500.fasta E:\1work\CFF\cdhit-scripts\test_unk_2500_2.cd-hit-para-tmp\UNKNOWN2500 10
+2025-08-18 21:22:07,660 - INFO - Step 2: Building level 0 (self-clustering) tasks
+2025-08-18 21:22:07,661 - INFO - Step 3: Building reduction tree
+2025-08-18 21:22:07,661 - INFO - Building level 1: 10 tasks -> 5 tasks
+2025-08-18 21:22:07,662 - INFO - Building level 2: 5 tasks -> 2 tasks
+2025-08-18 21:22:07,662 - INFO - Building level 3: 3 tasks -> 1 tasks
+2025-08-18 21:22:07,662 - INFO - Building level 4: 2 tasks -> 1 tasks
+2025-08-18 21:22:07,663 - INFO - Step 4: Computing final result
+2025-08-18 21:22:09,186 - INFO - Tree reduction computation finished.
+2025-08-18 21:22:09,186 - INFO - 
+Execution finished. Finalizing results...
+2025-08-18 21:22:09,187 - INFO - Copying final representative sequences to test_unk_2500_2
+2025-08-18 21:22:09,188 - INFO - Renumbering final cluster file to test_unk_2500_2.clstr
+2025-08-18 21:22:09,188 - INFO - Renumbering cluster file E:\1work\CFF\cdhit-scripts\test_unk_2500_2.cd-hit-para-tmp\level-4-pair-0.clstr to test_unk_2500_2.clstr
+2025-08-18 21:22:09,189 - INFO - Done.
+2025-08-18 21:22:09,189 - INFO - Closing Dask client
+2025-08-19 16:14:24,333 - INFO - Starting cd-hit-para.py with arguments: Namespace(input_file='UNKNOWN2500.fasta', output_directory='test_unk_2500_1', program='cd-hit-est', hosts_file=None, local_cpus=10, segments=10, queue_jobs=0, queue_type='PBS', dask_scheduler=None)
+2025-08-19 16:14:24,333 - INFO - Unknown arguments passed to cd-hit: -c 0.8 -r 0 -sc 1 -sf 1
+2025-08-19 16:14:24,333 - INFO - Setting up environment
+2025-08-19 16:14:24,334 - INFO - cd_hit_exe: cdhit.ps1 est --%
+2025-08-19 16:14:24,334 - INFO - cd_hit_2d_exe: cdhit.ps1 est-2d --%
+2025-08-19 16:14:24,334 - INFO - cd_hit_div_exe: E:\1work\CFF\cdhit-scripts\scripts\cd-hit-div.py
+2025-08-19 16:14:24,334 - INFO - work_dir: E:\1work\CFF\cdhit-scripts\test_unk_2500_1.cd-hit-para-tmp
+2025-08-19 16:14:24,334 - INFO - indiv: E:\1work\CFF\cdhit-scripts\test_unk_2500_1.cd-hit-para-tmp\UNKNOWN2500
+2025-08-19 16:14:24,335 - INFO - Working directory E:\1work\CFF\cdhit-scripts\test_unk_2500_1.cd-hit-para-tmp already exists. Will reuse existing files.
+2025-08-19 16:14:24,335 - INFO - Setting up Dask cluster
+2025-08-19 16:14:24,335 - INFO - Setting up LocalCluster with 10 workers
+2025-08-19 16:14:27,270 - INFO - Dask dashboard link: http://127.0.0.1:8787/status
+2025-08-19 16:14:27,270 - INFO - Starting tree reduction execution.
+2025-08-19 16:14:27,270 - INFO - Step 1: Splitting database
+2025-08-19 16:14:27,272 - INFO - Segment files already exist, skipping database split.
+2025-08-19 16:14:27,272 - INFO - Step 2: Building level 0 (self-clustering) tasks
+2025-08-19 16:14:27,273 - INFO - Step 3: Building reduction tree
+2025-08-19 16:14:27,273 - INFO - Building level 1: 10 tasks -> 5 tasks
+2025-08-19 16:14:27,274 - INFO - Building level 2: 5 tasks -> 2 tasks
+2025-08-19 16:14:27,274 - INFO - Building level 3: 3 tasks -> 1 tasks
+2025-08-19 16:14:27,275 - INFO - Building level 4: 2 tasks -> 1 tasks
+2025-08-19 16:14:27,275 - INFO - Step 4: Computing final result
+2025-08-19 16:14:27,329 - CRITICAL - A critical error occurred during execution: [WinError 2] The system cannot find the file specified
+2025-08-19 16:14:27,330 - INFO - Closing Dask client
+2025-08-19 16:15:56,112 - INFO - Starting cd-hit-para.py with arguments: Namespace(input_file='UNKNOWN2500.fasta', output_directory='test_unk_2500_1', program='cd-hit-est', hosts_file=None, local_cpus=10, segments=10, queue_jobs=0, queue_type='PBS', dask_scheduler=None)
+2025-08-19 16:15:56,112 - INFO - Unknown arguments passed to cd-hit: -c 0.8 -r 0 -sc 1 -sf 1
+2025-08-19 16:15:56,112 - INFO - Setting up environment
+2025-08-19 16:15:56,113 - INFO - cd_hit_exe: cdhit.ps1 est --%
+2025-08-19 16:15:56,113 - INFO - cd_hit_2d_exe: cdhit.ps1 est-2d --%
+2025-08-19 16:15:56,113 - INFO - cd_hit_div_exe: E:\1work\CFF\cdhit-scripts\scripts\cd-hit-div.py
+2025-08-19 16:15:56,113 - INFO - work_dir: E:\1work\CFF\cdhit-scripts\test_unk_2500_1.cd-hit-para-tmp
+2025-08-19 16:15:56,113 - INFO - indiv: E:\1work\CFF\cdhit-scripts\test_unk_2500_1.cd-hit-para-tmp\UNKNOWN2500
+2025-08-19 16:15:56,114 - INFO - Creating working directory: E:\1work\CFF\cdhit-scripts\test_unk_2500_1.cd-hit-para-tmp
+2025-08-19 16:15:56,114 - INFO - Setting up Dask cluster
+2025-08-19 16:15:56,114 - INFO - Setting up LocalCluster with 10 workers
+2025-08-19 16:15:59,595 - INFO - Dask dashboard link: http://127.0.0.1:8787/status
+2025-08-19 16:15:59,596 - INFO - Starting tree reduction execution.
+2025-08-19 16:15:59,596 - INFO - Step 1: Splitting database
+2025-08-19 16:15:59,596 - INFO - Executing command: E:\1work\CFF\cdhit-scripts\.venv\Scripts\python.exe E:\1work\CFF\cdhit-scripts\scripts\cd-hit-div.py E:\1work\CFF\cdhit-scripts\UNKNOWN2500.fasta E:\1work\CFF\cdhit-scripts\test_unk_2500_1.cd-hit-para-tmp\UNKNOWN2500 10
+2025-08-19 16:15:59,597 - INFO -   CWD: E:\1work\CFF\cdhit-scripts\test_unk_2500_1.cd-hit-para-tmp
+2025-08-19 16:15:59,597 - INFO -   Log file: E:\1work\CFF\cdhit-scripts\test_unk_2500_1.cd-hit-para-tmp\cd-hit-div.log
+2025-08-19 16:15:59,720 - INFO - Command finished successfully: E:\1work\CFF\cdhit-scripts\.venv\Scripts\python.exe E:\1work\CFF\cdhit-scripts\scripts\cd-hit-div.py E:\1work\CFF\cdhit-scripts\UNKNOWN2500.fasta E:\1work\CFF\cdhit-scripts\test_unk_2500_1.cd-hit-para-tmp\UNKNOWN2500 10
+2025-08-19 16:15:59,720 - INFO - Step 2: Building level 0 (self-clustering) tasks
+2025-08-19 16:15:59,721 - INFO - Step 3: Building reduction tree
+2025-08-19 16:15:59,721 - INFO - Building level 1: 10 tasks -> 5 tasks
+2025-08-19 16:15:59,722 - INFO - Building level 2: 5 tasks -> 2 tasks
+2025-08-19 16:15:59,722 - INFO - Building level 3: 3 tasks -> 1 tasks
+2025-08-19 16:15:59,722 - INFO - Building level 4: 2 tasks -> 1 tasks
+2025-08-19 16:15:59,722 - INFO - Step 4: Computing final result
+2025-08-19 16:15:59,755 - CRITICAL - A critical error occurred during execution: [WinError 2] The system cannot find the file specified
+2025-08-19 16:15:59,755 - INFO - Closing Dask client
+2025-08-19 16:17:08,383 - INFO - Starting cd-hit-para.py with arguments: Namespace(input_file='UNKNOWN2500.fasta', output_directory='test_unk_2500_1', program='cd-hit-est', hosts_file=None, local_cpus=10, segments=10, queue_jobs=0, queue_type='PBS', dask_scheduler=None)
+2025-08-19 16:17:08,383 - INFO - Unknown arguments passed to cd-hit: -c 0.8 -r 0 -sc 1 -sf 1
+2025-08-19 16:17:08,384 - INFO - Setting up environment
+2025-08-19 16:17:08,385 - INFO - cd_hit_exe: cdhit.ps1 est --%
+2025-08-19 16:17:08,385 - INFO - cd_hit_2d_exe: cdhit.ps1 est-2d --%
+2025-08-19 16:17:08,386 - INFO - cd_hit_div_exe: E:\1work\CFF\cdhit-scripts\scripts\cd-hit-div.py
+2025-08-19 16:17:08,386 - INFO - work_dir: E:\1work\CFF\cdhit-scripts\test_unk_2500_1.cd-hit-para-tmp
+2025-08-19 16:17:08,386 - INFO - indiv: E:\1work\CFF\cdhit-scripts\test_unk_2500_1.cd-hit-para-tmp\UNKNOWN2500
+2025-08-19 16:17:08,386 - INFO - Working directory E:\1work\CFF\cdhit-scripts\test_unk_2500_1.cd-hit-para-tmp already exists. Will reuse existing files.
+2025-08-19 16:17:08,386 - INFO - Setting up Dask cluster
+2025-08-19 16:17:08,386 - INFO - Setting up LocalCluster with 10 workers
+2025-08-19 16:17:14,430 - INFO - Dask dashboard link: http://127.0.0.1:8787/status
+2025-08-19 16:17:14,431 - INFO - Starting tree reduction execution.
+2025-08-19 16:17:14,431 - INFO - Step 1: Splitting database
+2025-08-19 16:17:14,433 - INFO - Segment files already exist, skipping database split.
+2025-08-19 16:17:14,433 - INFO - Step 2: Building level 0 (self-clustering) tasks
+2025-08-19 16:17:14,434 - INFO - Step 3: Building reduction tree
+2025-08-19 16:17:14,434 - INFO - Building level 1: 10 tasks -> 5 tasks
+2025-08-19 16:17:14,434 - INFO - Building level 2: 5 tasks -> 2 tasks
+2025-08-19 16:17:14,435 - INFO - Building level 3: 3 tasks -> 1 tasks
+2025-08-19 16:17:14,435 - INFO - Building level 4: 2 tasks -> 1 tasks
+2025-08-19 16:17:14,435 - INFO - Step 4: Computing final result
+2025-08-19 16:17:14,507 - CRITICAL - A critical error occurred during execution: [WinError 2] The system cannot find the file specified
+2025-08-19 16:17:14,508 - INFO - Closing Dask client
+2025-08-19 16:19:03,118 - INFO - Starting cd-hit-para.py with arguments: Namespace(input_file='UNKNOWN2500.fasta', output_directory='test_unk_2500_1', program='cd-hit-est', hosts_file=None, local_cpus=10, segments=10, queue_jobs=0, queue_type='PBS', dask_scheduler=None)
+2025-08-19 16:19:03,118 - INFO - Unknown arguments passed to cd-hit: -c 0.8 -r 0 -sc 1 -sf 1
+2025-08-19 16:19:03,118 - INFO - Setting up environment
+2025-08-19 16:19:03,119 - INFO - cd_hit_exe: cdhit.ps1 est --%
+2025-08-19 16:19:03,119 - INFO - cd_hit_2d_exe: cdhit.ps1 est-2d --%
+2025-08-19 16:19:03,119 - INFO - cd_hit_div_exe: E:\1work\CFF\cdhit-scripts\scripts\cd-hit-div.py
+2025-08-19 16:19:03,119 - INFO - work_dir: E:\1work\CFF\cdhit-scripts\test_unk_2500_1.cd-hit-para-tmp
+2025-08-19 16:19:03,119 - INFO - indiv: E:\1work\CFF\cdhit-scripts\test_unk_2500_1.cd-hit-para-tmp\UNKNOWN2500
+2025-08-19 16:19:03,120 - INFO - Working directory E:\1work\CFF\cdhit-scripts\test_unk_2500_1.cd-hit-para-tmp already exists. Will reuse existing files.
+2025-08-19 16:19:03,120 - INFO - Setting up Dask cluster
+2025-08-19 16:19:03,120 - INFO - Setting up LocalCluster with 10 workers
+2025-08-19 16:19:09,847 - INFO - Dask dashboard link: http://127.0.0.1:8787/status
+2025-08-19 16:19:09,848 - INFO - Starting tree reduction execution.
+2025-08-19 16:19:09,848 - INFO - Step 1: Splitting database
+2025-08-19 16:19:09,850 - INFO - Segment files already exist, skipping database split.
+2025-08-19 16:19:09,850 - INFO - Step 2: Building level 0 (self-clustering) tasks
+2025-08-19 16:19:09,851 - INFO - Step 3: Building reduction tree
+2025-08-19 16:19:09,852 - INFO - Building level 1: 10 tasks -> 5 tasks
+2025-08-19 16:19:09,852 - INFO - Building level 2: 5 tasks -> 2 tasks
+2025-08-19 16:19:09,854 - INFO - Building level 3: 3 tasks -> 1 tasks
+2025-08-19 16:19:09,854 - INFO - Building level 4: 2 tasks -> 1 tasks
+2025-08-19 16:19:09,855 - INFO - Step 4: Computing final result
+2025-08-19 16:19:09,932 - CRITICAL - A critical error occurred during execution: [WinError 2] The system cannot find the file specified
+2025-08-19 16:19:09,932 - INFO - Closing Dask client

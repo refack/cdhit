@@ -1,0 +1,1 @@
+@wsl cd-hit-est-2d %*

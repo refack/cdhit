@@ -1,0 +1,52 @@
+[
+  {
+    "cmd_str": "E:\\1work\\CFF\\cdhit-scripts\\.venv\\Scripts\\python.exe E:\\1work\\CFF\\cdhit-scripts\\scripts\\cd-hit-div.py E:\\1work\\CFF\\cdhit-scripts\\UNKNOWN100.fasta E:\\1work\\CFF\\cdhit-scripts\\test_simple.cd-hit-para-tmp\\UNKNOWN100 2",
+    "status": "done",
+    "in": [
+      "UNKNOWN100.fasta"
+    ],
+    "out": [
+      "UNKNOWN100-0",
+      "UNKNOWN100-1"
+    ],
+    "log_idx": -1
+  },
+  {
+    "cmd_str": "E:\\1work\\CFF\\cdhit-scripts\\cd-hit-est.cmd -i test_simple.cd-hit-para-tmp/UNKNOWN100-0 -o test_simple.cd-hit-para-tmp/UNKNOWN100-0-o -c 0.8 -r 0 -sc 1 -sf 1",
+    "status": "wait",
+    "in": [
+      "UNKNOWN100-0"
+    ],
+    "out": [
+      "UNKNOWN100-0-o",
+      "UNKNOWN100-0-o.clstr"
+    ],
+    "log_idx": 0
+  },
+  {
+    "cmd_str": "E:\\1work\\CFF\\cdhit-scripts\\cd-hit-est-2d.cmd -i test_simple.cd-hit-para-tmp/UNKNOWN100-0-o -i2 test_simple.cd-hit-para-tmp/UNKNOWN100-1 -o test_simple.cd-hit-para-tmp/UNKNOWN100-1.vs.0 -c 0.8 -r 0 -sc 1 -sf 1",
+    "status": "wait",
+    "in": [
+      "UNKNOWN100-0-o",
+      "UNKNOWN100-1"
+    ],
+    "out": [
+      "UNKNOWN100-1.vs.0",
+      "UNKNOWN100-1.vs.0.clstr"
+    ],
+    "log_idx": 1
+  },
+  {
+    "cmd_str": "E:\\1work\\CFF\\cdhit-scripts\\cd-hit-est.cmd -i test_simple.cd-hit-para-tmp/UNKNOWN100-1.vs.0 -o test_simple.cd-hit-para-tmp/UNKNOWN100-1-o -c 0.8 -r 0 -sc 1 -sf 1",
+    "status": "wait",
+    "in": [
+      "UNKNOWN100-1.vs.0",
+      "UNKNOWN100-1.vs.0.clstr"
+    ],
+    "out": [
+      "UNKNOWN100-1-o",
+      "UNKNOWN100-1-o.clstr"
+    ],
+    "log_idx": 1
+  }
+]
